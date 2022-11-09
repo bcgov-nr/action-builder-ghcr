@@ -110,3 +110,6 @@ runs:
         tags: ghcr.io/${{ github.repository }}/${{ inputs.component }}:${{ inputs.img_build }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Checkout Action repo to pass tests
+      uses: actions/checkout@v3

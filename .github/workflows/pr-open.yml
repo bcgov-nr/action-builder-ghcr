@@ -1,0 +1,52 @@
+name: Pull Request
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  retags:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        component: [backend, frontend]
+        include:
+          - component: backend
+            triggers: ('backend/')
+          - component: frontend
+            triggers: ('frontend/')
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test Retags
+        uses: ./
+        with:
+          component: ${{ matrix.component }}
+          img_build: ${{ github.event.number }}
+          img_fallback: test
+          repository: bcgov/nr-quickstart-typescript
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  builds:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        component: [backend, frontend]
+        include:
+          - component: backend
+            triggers: ('backend/')
+          - component: frontend
+            triggers: ('frontend/')
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test Builds
+        uses: ./
+        with:
+          component: ${{ matrix.component }}
+          img_build: ${{ github.event.number }}
+          img_fallback: test
+          repository: bcgov/nr-quickstart-typescript
+          token: ${{ secrets.GITHUB_TOKEN }}
+          triggers: ${{ matrix.triggers }}
