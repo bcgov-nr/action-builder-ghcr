@@ -20,7 +20,6 @@ jobs:
             triggers: ('frontend/')
     steps:
       - uses: actions/checkout@v3
-
       - name: Test Retags
         uses: ./
         with:
@@ -30,6 +29,18 @@ jobs:
           repository: bcgov/nr-quickstart-typescript
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  builds:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        component: [backend, frontend]
+        include:
+          - component: backend
+            triggers: ('backend/')
+          - component: frontend
+            triggers: ('frontend/')
+    steps:
+      - uses: actions/checkout@v3
       - name: Test Builds
         uses: ./
         with:
