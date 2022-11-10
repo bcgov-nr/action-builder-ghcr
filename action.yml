@@ -3,32 +3,39 @@ description: Build if trigger conditions are met, else use fallback image
 branding:
   icon: package
   color: blue
+
 inputs:
-  component:
+  ### Required
+  package:
     required: true
-    description: Component, e.g. backend, frontend
-  img_build:
+    description: Package name; e.g. backend, frontend
+  tag:
     required: true
-    description: Default zone, usually pr#
-  img_fallback:
-    required: true
-    description: Where to pull default images from, e.g. prod, test
-  repository:
-    default: ${{ github.repository }}
-    description: Non-default repo to clone
-  triggers:
-    default: "('.')"
-    description: Paths used to trigger a build, e.g. ('./backend/', './frontend/)
-  upstream_branch:
-    default: ${{ github.event.repository.default_branch }}
-    description: Branch to diff against
+    description: Default tag; e.g. pr#, test, prod
   token:
     required: true
     description: Default github token (secrets.GITHUB_TOKEN)
+
+  ### Typical / recommended
+  tag_fallback:
+    description: Where to pull default images from, e.g. prod, test
+  triggers:
+    default: "('.')"
+    description: Paths used to trigger a build, e.g. ('./backend/', './frontend/)
+
+  ### Usually a bad idea / not recommended
+  diff_branch:
+    default: ${{ github.event.repository.default_branch }}
+    description: Branch to diff against
+  repository:
+    default: ${{ github.repository }}
+    description: Non-default repo to clone
+
 outputs:
   build:
-    description: True = build has changed
+    description: Whether a build has been generated (true|false)
     value: ${{ steps.check.outputs.build }}
+
 runs:
   using: composite
   steps:
@@ -36,14 +43,14 @@ runs:
       with:
         repository: ${{ github.repository }}
 
-    # Check triggers to see if a build is required; always build if inputs.img_fallback not provided or doesn't exist
+    # Check triggers to see if a build is required; always build if inputs.tag_fallback not provided or doesn't exist
     - name: Check and process modified files
       # Returns jobs.check.outputs.build as a boolean (true/false)
       shell: bash
       id: check
       run: |
         # Fetch default branch to diff against
-        git fetch origin ${{ inputs.upstream_branch }}
+        git fetch origin ${{ inputs.diff_branch }}
 
         # Trigger build if diff matches any triggers
         TRIGGERS=${{ inputs.triggers }}
@@ -56,11 +63,11 @@ runs:
                 exit 0
             fi
           done
-        done < <(git diff origin/${{ inputs.upstream_branch }} --name-only)
+        done < <(git diff origin/${{ inputs.diff_branch }} --name-only)
 
         # Check that fallback tag exists, otherwise build
-        TOKEN=$(curl -s https://ghcr.io/token\?scope\="repository:${{ github.repository }}/${{ inputs.component }}:pull" | jq -r .token)
-        URL="https://ghcr.io/v2/${{ github.repository }}/${{ inputs.component }}/manifests/${{ inputs.img_fallback }}"
+        TOKEN=$(curl -s https://ghcr.io/token\?scope\="repository:${{ github.repository }}/${{ inputs.package }}:pull" | jq -r .token)
+        URL="https://ghcr.io/v2/${{ github.repository }}/${{ inputs.package }}/manifests/${{ inputs.tag_fallback }}"
         if [ $(curl -ILso /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" "${URL}") -ne 200 ]
         then
             # Output build=true for next steps
@@ -79,9 +86,9 @@ runs:
       if: steps.check.outputs.build != 'true'
       with:
         registry: ghcr.io
-        repository: ${{ github.repository }}/${{ inputs.component }}
-        target: ${{ inputs.img_fallback }}
-        tags: ${{ inputs.img_build }}
+        repository: ${{ github.repository }}/${{ inputs.package }}
+        target: ${{ inputs.tag_fallback }}
+        tags: ${{ inputs.tag }}
 
     # If a build is required, then build and push!
     - uses: actions/checkout@v3
@@ -101,13 +108,13 @@ runs:
         username: ${{ github.actor }}
         password: ${{ inputs.token }}
 
-    - name: Build and push ${{ inputs.component }} Docker image
+    - name: Build and push ${{ inputs.package }} Docker image
       if: steps.check.outputs.build == 'true'
       uses: docker/build-push-action@v3
       with:
-        context: ./${{ inputs.component }}/
+        context: ./${{ inputs.package }}/
         push: true
-        tags: ghcr.io/${{ github.repository }}/${{ inputs.component }}:${{ inputs.img_build }}
+        tags: ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
