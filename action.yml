@@ -45,7 +45,7 @@ runs:
 
     # Check triggers to see if a build is required; always build if inputs.tag_fallback not provided or doesn't exist
     - name: Check and process modified files
-      # Returns jobs.check.outputs.build as a boolean (true/false)
+      # Returns steps.check.outputs.build as a boolean (true/false)
       shell: bash
       id: check
       run: |

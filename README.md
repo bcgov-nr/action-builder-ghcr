@@ -21,7 +21,7 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
 # Usage
 
 ```yaml
-- uses: bcgov-nr/action-conditional-container-builder@v1
+- uses: bcgov-nr/action-conditional-container-builder@main
   with:
     ### Required
 
@@ -81,13 +81,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Builds
-          uses: bcgov-nr/action-conditional-container-builder@v1
-          with:
-            package: frontend
-            tag: ${{ github.event.number }}
-            tag_fallback: test
-            token: ${{ secrets.GITHUB_TOKEN }}
-            triggers: ('frontend/')
+        uses: bcgov-nr/action-conditional-container-builder@main
+        with:
+          package: frontend
+          tag: ${{ github.event.number }}
+          tag_fallback: test
+          token: ${{ secrets.GITHUB_TOKEN }}
+          triggers: ('frontend/')
 ```
 
 # Example, Matrix Build
@@ -120,7 +120,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Test Builds
-        uses: ./
+        uses: bcgov-nr/action-conditional-container-builder@main
         with:
           package: ${{ matrix.package }}
           tag: ${{ github.event.number }}
@@ -137,7 +137,7 @@ If a build has been generated this action will output 'true`.
 
 ```yaml
 - id: meaningful_id_name
-  uses: bcgov-nr/action-conditional-container-builder@v1
+  uses: bcgov-nr/action-conditional-container-builder@main
   ...
 
 - if: steps.meaningful_id_name.outputs.build == 'true'
