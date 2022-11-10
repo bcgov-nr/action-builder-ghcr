@@ -124,7 +124,7 @@ jobs:
         with:
           package: ${{ matrix.package }}
           tag: ${{ github.event.number }}
-          tag_tallback: test
+          tag_fallback: test
           repository: bcgov/nr-quickstart-typescript
           token: ${{ secrets.GITHUB_TOKEN }}
           triggers: ${{ matrix.triggers }}
