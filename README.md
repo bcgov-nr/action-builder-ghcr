@@ -8,7 +8,7 @@
 
 This action builds Docker/Podman containers conditionally using a set of directories.  If any files were changed matching that, then build a container.  If those files were not changed, retag an existing build.
 
-This is useful in CI/CD pipelines where not every component/app needs to be rebuilt.
+This is useful in CI/CD pipelines where not every package/app needs to be rebuilt.
 
 This tool is currently strongly opinionated and generatess images with a rigid structure below.  This is intended to become more flexible in future.
 
@@ -111,20 +111,20 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        component: [backend, frontend]
+        package: [backend, frontend]
         include:
-          - component: backend
+          - package: backend
             triggers: ('backend/')
-          - component: frontend
+          - package: frontend
             triggers: ('frontend/')
     steps:
       - uses: actions/checkout@v3
       - name: Test Builds
         uses: ./
         with:
-          component: ${{ matrix.component }}
+          package: ${{ matrix.package }}
           tag: ${{ github.event.number }}
-          img_fallback: test
+          tag_tallback: test
           repository: bcgov/nr-quickstart-typescript
           token: ${{ secrets.GITHUB_TOKEN }}
           triggers: ${{ matrix.triggers }}
