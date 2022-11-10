@@ -24,7 +24,7 @@ jobs:
         uses: ./
         with:
           component: ${{ matrix.component }}
-          img_build: ${{ github.event.number }}
+          tag: ${{ github.event.number }}
           img_fallback: test
           repository: bcgov/nr-quickstart-typescript
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +45,7 @@ jobs:
         uses: ./
         with:
           component: ${{ matrix.component }}
-          img_build: ${{ github.event.number }}
+          tag: ${{ github.event.number }}
           img_fallback: test
           repository: bcgov/nr-quickstart-typescript
           token: ${{ secrets.GITHUB_TOKEN }}
