@@ -41,7 +41,7 @@ runs:
   steps:
     - uses: actions/checkout@v3
       with:
-        repository: ${{ github.repository }}
+        repository: ${{ inputs.repository }}
 
     # Check triggers to see if a build is required; always build if inputs.tag_fallback not provided or doesn't exist
     - name: Check and process modified files
@@ -66,8 +66,8 @@ runs:
         done < <(git diff origin/${{ inputs.diff_branch }} --name-only)
 
         # Check that fallback tag exists, otherwise build
-        TOKEN=$(curl -s https://ghcr.io/token\?scope\="repository:${{ github.repository }}/${{ inputs.package }}:pull" | jq -r .token)
-        URL="https://ghcr.io/v2/${{ github.repository }}/${{ inputs.package }}/manifests/${{ inputs.tag_fallback }}"
+        TOKEN=$(curl -s https://ghcr.io/token\?scope\="repository:${{ inputs.repository }}/${{ inputs.package }}:pull" | jq -r .token)
+        URL="https://ghcr.io/v2/${{ inputs.repository }}/${{ inputs.package }}/manifests/${{ inputs.tag_fallback }}"
         if [ $(curl -ILso /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" "${URL}") -ne 200 ]
         then
             # Output build=true for next steps
@@ -86,7 +86,7 @@ runs:
       if: steps.check.outputs.build != 'true'
       with:
         registry: ghcr.io
-        repository: ${{ github.repository }}/${{ inputs.package }}
+        repository: ${{ inputs.repository }}/${{ inputs.package }}
         target: ${{ inputs.tag_fallback }}
         tags: ${{ inputs.tag }}
 
@@ -114,7 +114,7 @@ runs:
       with:
         context: ./${{ inputs.package }}/
         push: true
-        tags: ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}
+        tags: ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
