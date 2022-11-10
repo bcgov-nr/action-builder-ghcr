@@ -3,31 +3,39 @@ description: Build if trigger conditions are met, else use fallback image
 branding:
   icon: package
   color: blue
+
 inputs:
+  ### Required
   package:
     required: true
     description: Package name; e.g. backend, frontend
-  repository:
-    default: ${{ github.repository }}
-    description: Non-default repo to clone
   tag:
     required: true
     description: Default tag; e.g. pr#, test, prod
+  token:
+    required: true
+    description: Default github token (secrets.GITHUB_TOKEN)
+
+  ### Typical / recommended
   tag_fallback:
     description: Where to pull default images from, e.g. prod, test
   triggers:
     default: "('.')"
     description: Paths used to trigger a build, e.g. ('./backend/', './frontend/)
-  token:
-    required: true
-    description: Default github token (secrets.GITHUB_TOKEN)
+
+  ### Usually a bad idea / not recommended
   diff_branch:
     default: ${{ github.event.repository.default_branch }}
     description: Branch to diff against
+  repository:
+    default: ${{ github.repository }}
+    description: Non-default repo to clone
+
 outputs:
   build:
-    description: True = build has changed
+    description: Whether a build has been generated (true|false)
     value: ${{ steps.check.outputs.build }}
+
 runs:
   using: composite
   steps:

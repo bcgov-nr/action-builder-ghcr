@@ -10,16 +10,13 @@ This action builds Docker/Podman containers conditionally using a set of directo
 
 This is useful in CI/CD pipelines where not every component/app needs to be rebuilt.
 
-Only GitHub Container Registry (ghcr.io) is supported so far.
-
-This tool is currently strongly opinionated and generatess images with the naming structure below.  This is intended to become more flexible in future.
+This tool is currently strongly opinionated and generatess images with a rigid structure below.  This is intended to become more flexible in future.
 
 Package name: `<organization>/<repository>/<package>:<tag>`
 
-Pull with:
-- `docker pull ghcr.io/<organization>/<repository>/<package>:<tag>` 
-- or `podman pull ghcr.io/<organization>/<repository>/<package>:<tag>` 
+Pull with: `docker pull ghcr.io/<organization>/<repository>/<package>:<tag>` 
 
+Only GitHub Container Registry (ghcr.io) is supported so far.
 
 # Usage
 
@@ -132,6 +129,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           triggers: ${{ matrix.triggers }}
 
+```
+
+# Output
+
+If a build has been generated this action will output 'true`.
+
+```yaml
+- id: meaningful_id_name
+  uses: bcgov-nr/action-conditional-container-builder@v1
+  ...
+
+- if: steps.meaningful_id_name.outputs.build == 'true'
+  ...
 ```
 
 # Acknowledgements
