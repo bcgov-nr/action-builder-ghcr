@@ -77,6 +77,8 @@ concurrency:
 
 jobs:
   builds:
+    permissions:
+      packages: write
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -108,6 +110,8 @@ concurrency:
 
 jobs:
   builds:
+    permissions:
+      packages: write
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -133,7 +137,7 @@ jobs:
 
 # Output
 
-If a build has been generated this action will output 'true`.
+If a build has been generated this action will output `true`.
 
 ```yaml
 - id: meaningful_id_name
@@ -142,6 +146,15 @@ If a build has been generated this action will output 'true`.
 
 - if: steps.meaningful_id_name.outputs.build == 'true'
   ...
+```
+
+# Permissions
+
+Workflows kicked off by Dependabot or a fork run with reduced permissions.  That can be addressed by setting explict permissions for the GITHUB_TOKEN.  If this is not required, then remove the lines below from these examples.
+
+```yaml
+permissions:
+  packages: write
 ```
 
 # Acknowledgements

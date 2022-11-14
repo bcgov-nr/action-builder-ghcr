@@ -9,6 +9,8 @@ concurrency:
 
 jobs:
   retags:
+    permissions:
+      packages: write
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -30,6 +32,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   builds:
+    permissions:
+      packages: write
     runs-on: ubuntu-22.04
     strategy:
       matrix:
