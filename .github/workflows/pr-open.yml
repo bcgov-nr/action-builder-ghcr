@@ -14,10 +14,12 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        package: [backend, frontend]
+        package: [backend, database, frontend]
         include:
           - package: backend
             triggers: ('backend/')
+          - package: database
+            triggers: ('database/')
           - package: frontend
             triggers: ('frontend/')
     steps:
@@ -37,12 +39,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        package: [backend, frontend]
-        include:
-          - package: backend
-            triggers: ('backend/')
-          - package: frontend
-            triggers: ('frontend/')
+        package: [backend, database, frontend]
     steps:
       - uses: actions/checkout@v3
       - name: Test Builds
@@ -50,7 +47,5 @@ jobs:
         with:
           package: ${{ matrix.package }}
           tag: ${{ github.event.number }}
-          tag_fallback: test
           repository: bcgov/nr-quickstart-typescript
           token: ${{ secrets.GITHUB_TOKEN }}
-          triggers: ${{ matrix.triggers }}
