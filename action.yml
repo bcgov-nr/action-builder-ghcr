@@ -113,11 +113,13 @@ runs:
 
     - name: Build and push ${{ inputs.package }} Docker image
       if: steps.check.outputs.build == 'true'
+      env:
+        tags: (ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}).toLowerCase()
       uses: docker/build-push-action@v3
       with:
         context: ./${{ inputs.package }}/
         push: true
-        tags: ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}
+        tags: ${{ env.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
