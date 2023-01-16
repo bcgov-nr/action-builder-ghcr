@@ -46,6 +46,11 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
     # Defaults to nothing, which forces a build
     triggers: ('frontend/')
 
+    # Sets the context build to be using the package parameter as 
+    # the name of the folder where the code is
+    # Default to the value of the package input if nothing is passed
+    build_context: ./
+
 
     ### Usually a bad idea / not recommended
 

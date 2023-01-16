@@ -21,6 +21,8 @@ inputs:
     description: Where to pull default images from; e.g. prod, test
   triggers:
     description: Paths used to trigger a build; e.g. ('./backend/', './frontend/)
+  build_context:
+    description: Sets the context build to be using the package parameter as the name of the folder where the code is
 
   ### Usually a bad idea / not recommended
   diff_branch:
@@ -33,7 +35,7 @@ inputs:
 outputs:
   build:
     description: True if a build has been generated
-    value: ${{ steps.check.outputs.build }}
+    value: ${{ steps.build.outputs.triggered }}
 
 runs:
   using: composite
@@ -43,42 +45,60 @@ runs:
         # Check out build repo
         repository: ${{ inputs.repository }}
 
-    # Check triggers to see if a build is required; always build if inputs.tag_fallback not provided or doesn't exist
-    # Returns steps.check.outputs.build as a boolean (true/false)
-    - name: Check and process modified files
+    # Process variables and inputs
+    - id: vars
       shell: bash
-      id: check
       run: |
-        # Check inputs
+        # Inputs and variables
+
+        # Use package folder as build_context unless an override has been provided
+        if [ -z ${{ inputs.build_context }} ]; then
+          echo "build_context=${{ inputs.package }}" >> $GITHUB_OUTPUT
+        else
+          echo "build_context=${{ inputs.build_context }}" >> $GITHUB_OUTPUT
+        fi
+
+        # Bug - Docker build hates images with capital letters
+        TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
+        echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+
+    # Check if a build is required (steps.build.outputs.triggered=true|false)
+    - name: Check for builds
+      shell: bash
+      id: build
+      run: |
+        # Check for builds
+
+        # Build if no tag_fallback, no triggers or using an override repository
         if [ ! -z "${{ inputs.repository }}" ]||[ -z "${{ inputs.tag_fallback }}" ]||[ -z "${{ inputs.triggers }}" ]; then
           echo "Build triggered based on inputs.  Possible reasons:"
           echo " a) repository override provided"
           echo " b) tag_fallback or triggers not provided"
-          echo "build=true" >> $GITHUB_OUTPUT
+          echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
         fi
 
-        # Verify tag_fallback points to a valid container
+        # Build if tag_fallback is no good (requires a valid container)
         TOKEN=$(curl -s https://ghcr.io/token\?scope\="repository:${{ inputs.repository }}/${{ inputs.package }}:pull" | jq -r .token)
         URL="https://ghcr.io/v2/${{ inputs.repository }}/${{ inputs.package }}/manifests/${{ inputs.tag_fallback }}"
         if [ $(curl -ILso /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" "${URL}") -ne 200 ]
         then
-            # Output build=true for next steps
+            # Output triggered=true for next steps
             echo "Build triggered.  Fallback tag (tag_fallback) not usable."
-            echo "build=true" >> $GITHUB_OUTPUT
+            echo "triggered=true" >> $GITHUB_OUTPUT
             exit 0
         fi
 
-        # Run git diff against provided triggers
+        # Build if changed files (git diff) match triggers
         TRIGGERS=${{ inputs.triggers }}
         git fetch origin ${{ inputs.diff_branch }}
         while read -r check; do
           for t in "${TRIGGERS[@]}"; do
             if [[ "${check}" =~ "${t}" ]]; then
-                # Output build=true for next steps
+                # Output triggered=true for next steps
                 echo "Build triggered based on git diff"
                 echo -e "${t}\n --> ${check}"
-                echo "build=true" >> $GITHUB_OUTPUT
+                echo "triggered=true" >> $GITHUB_OUTPUT
                 exit 0
             fi
           done
@@ -86,12 +106,12 @@ runs:
 
         # If at this point, no build is required
         echo "Container build not required"
-        echo "build=false" >> $GITHUB_OUTPUT
+        echo "triggered=false" >> $GITHUB_OUTPUT
 
     # If a build is not required, reuse a previous image
     - name: Recycle/retag Previous Images
       uses: shrink/actions-docker-registry-tag@v3
-      if: steps.check.outputs.build != 'true'
+      if: steps.build.outputs.triggered != 'true'
       with:
         registry: ghcr.io
         repository: ${{ inputs.repository }}/${{ inputs.package }}
@@ -100,31 +120,24 @@ runs:
 
     # If a build is required, then build and push!
     - name: Set up Docker Buildx
-      if: steps.check.outputs.build == 'true'
+      if: steps.build.outputs.triggered == 'true'
       uses: docker/setup-buildx-action@v2
 
     - name: Log in to the Container registry
-      if: steps.check.outputs.build == 'true'
+      if: steps.build.outputs.triggered == 'true'
       uses: docker/login-action@v2
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ inputs.token }}
 
-    - name: Force lowercase for Docker
-      shell: bash
-      id: lowercase
-      run: |
-        TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
-        echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-
     - name: Build and push ${{ inputs.package }} Docker image
-      if: steps.check.outputs.build == 'true'
+      if: steps.build.outputs.triggered == 'true'
       uses: docker/build-push-action@v3
       with:
-        context: ./${{ inputs.package }}/
+        context: ${{ steps.vars.outputs.build_context }}
         push: true
-        tags: ${{ steps.lowercase.outputs.tags }}
+        tags: ${{ steps.vars.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
