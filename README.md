@@ -46,6 +46,11 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
     # Defaults to nothing, which forces a build
     triggers: ('frontend/')
 
+    # Boolean value that controls if the code resides on a subfolder
+    # If set to true, will use the package value as the folder name
+    # Default to true
+    subfolder: true
+
 
     ### Usually a bad idea / not recommended
 

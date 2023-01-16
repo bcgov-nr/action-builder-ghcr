@@ -21,6 +21,9 @@ inputs:
     description: Where to pull default images from; e.g. prod, test
   triggers:
     description: Paths used to trigger a build; e.g. ('./backend/', './frontend/)
+  subfolder:
+    description: Sets the context build to be using the package parameter as the name of the folder where the code is
+    default: true
 
   ### Usually a bad idea / not recommended
   diff_branch:
@@ -88,6 +91,14 @@ runs:
         echo "Container build not required"
         echo "build=false" >> $GITHUB_OUTPUT
 
+        # If subfolder is set to false, set the build context to root folder
+        if [[ ${{ inputs.subfolder }} == true ]];
+        then
+          echo "contextfolder=./${{ inputs.package }}/" >> $GITHUB_OUTPUT
+        else
+          echo "contextfolder=./" >> $GITHUB_OUTPUT
+        fi
+
     # If a build is not required, reuse a previous image
     - name: Recycle/retag Previous Images
       uses: shrink/actions-docker-registry-tag@v3
@@ -122,7 +133,7 @@ runs:
       if: steps.check.outputs.build == 'true'
       uses: docker/build-push-action@v3
       with:
-        context: ./${{ inputs.package }}/
+        context: ${{ steps.check.outputs.contextfolder }}
         push: true
         tags: ${{ steps.lowercase.outputs.tags }}
         cache-from: type=gha
