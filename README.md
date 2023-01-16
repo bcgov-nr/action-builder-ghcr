@@ -21,7 +21,7 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
 # Usage
 
 ```yaml
-- uses: bcgov-nr/action-conditional-container-builder@main
+- uses: bcgov-nr/action-conditional-container-builder@v1.0.0
   with:
     ### Required
 
@@ -38,18 +38,17 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
     ### Typical / recommended
 
     # Fallback tag, used if no build was generated
-    # Non-matching tags do nothing, which forces a build
-    # Defaults to nothing, which also forces a build
+    # Optional, defaults to nothing, which forces a build
+    # Non-matching or malformed tags are rejected, which also forced a build
     tag_fallback: test
 
     # Bash array to diff for build triggering
-    # Defaults to nothing, which forces a build
+    # Optional, defaults to nothing, which forces a build
     triggers: ('frontend/')
 
-    # Sets the context build to be using the package parameter as 
-    # the name of the folder where the code is
-    # Default to the value of the package input if nothing is passed
-    build_context: ./
+    # Sets the build context/directory, which containt, but not points to a Docker
+    # Optional, defaults to package name
+    build_context: ./frontend
 
 
     ### Usually a bad idea / not recommended
@@ -88,9 +87,43 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Builds
-        uses: bcgov-nr/action-conditional-container-builder@main
+        uses: bcgov-nr/action-conditional-container-builder@v1.0.0
         with:
           package: frontend
+          tag: ${{ github.event.number }}
+          tag_fallback: test
+          token: ${{ secrets.GITHUB_TOKEN }}
+          triggers: ('frontend/')
+```
+
+# Example, Single Build with build_context
+
+Build an image overriding the build context, which is a directory containing a Dockerfile.
+
+Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/pr-open.yml`
+
+```yaml
+name: Pull Request
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  builds:
+    permissions:
+      packages: write
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Builds
+        uses: bcgov-nr/action-conditional-container-builder@v1.0.0
+        with:
+          package: frontend
+          build_context: ./
           tag: ${{ github.event.number }}
           tag_fallback: test
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -129,7 +162,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Test Builds
-        uses: bcgov-nr/action-conditional-container-builder@main
+        uses: bcgov-nr/action-conditional-container-builder@v1.0.0
         with:
           package: ${{ matrix.package }}
           tag: ${{ github.event.number }}
@@ -146,7 +179,7 @@ If a build has been generated this action will output `true`.
 
 ```yaml
 - id: meaningful_id_name
-  uses: bcgov-nr/action-conditional-container-builder@main
+  uses: bcgov-nr/action-conditional-container-builder@v1.0.0
   ...
 
 - if: steps.meaningful_id_name.outputs.build == 'true'
