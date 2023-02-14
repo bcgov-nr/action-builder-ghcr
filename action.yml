@@ -60,7 +60,7 @@ runs:
           echo "build_context=${{ inputs.build_context }}" >> $GITHUB_OUTPUT
         fi
 
-        # Use ${{ inputs.package}/Dockerfile as build_file unless an override has been provided
+        # Use inputs.package/Dockerfile as build_file unless an override has been provided
         if [ -z ${{ inputs.build_file }} ]; then
           echo "build_file=${{ inputs.package }}/Dockerfile" >> $GITHUB_OUTPUT
         else
