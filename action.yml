@@ -23,6 +23,8 @@ inputs:
     description: Paths used to trigger a build; e.g. ('./backend/', './frontend/)
   build_context:
     description: Sets the context build to be using the package parameter as the name of the folder where the code is
+  build_file:
+    description: Sets the Dockerfile being built, not required for Dockerfiles in the package/default folder
 
   ### Usually a bad idea / not recommended
   diff_branch:
@@ -56,6 +58,13 @@ runs:
           echo "build_context=${{ inputs.package }}" >> $GITHUB_OUTPUT
         else
           echo "build_context=${{ inputs.build_context }}" >> $GITHUB_OUTPUT
+        fi
+
+        # Use ${{ inputs.package}/Dockerfile as build_file unless an override has been provided
+        if [ -z ${{ inputs.build_file }} ]; then
+          echo "build_file=${{ inputs.package }}/Dockerfile" >> $GITHUB_OUTPUT
+        else
+          echo "build_file=${{ inputs.build_file }}" >> $GITHUB_OUTPUT
         fi
 
         # Bug - Docker build hates images with capital letters
@@ -136,6 +145,7 @@ runs:
       uses: docker/build-push-action@v4
       with:
         context: ${{ steps.vars.outputs.build_context }}
+        file: ${{ steps.vars.outputs.build_file }}
         push: true
         tags: ${{ steps.vars.outputs.tags }}
         cache-from: type=gha
