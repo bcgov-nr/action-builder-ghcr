@@ -22,9 +22,9 @@ inputs:
   triggers:
     description: Paths used to trigger a build; e.g. ('./backend/', './frontend/)
   build_context:
-    description: Sets the context build to be using the package parameter as the name of the folder where the code is
+    description: Build context, not required for self-contained package/default directory
   build_file:
-    description: Sets the Dockerfile being built, not required for Dockerfiles in the package/default folder
+    description: Dockerfile with path, not required for self-contained package/default directory
 
   ### Usually a bad idea / not recommended
   diff_branch:
