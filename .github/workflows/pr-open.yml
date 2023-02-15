@@ -8,80 +8,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # retags:
-  #   permissions:
-  #     packages: write
-  #   runs-on: ubuntu-22.04
-  #   strategy:
-  #     matrix:
-  #       package: [backend, database, frontend]
-  #       include:
-  #         - package: backend
-  #           triggers: ('backend/')
-  #         - package: database
-  #           triggers: ('database/')
-  #         - package: frontend
-  #           triggers: ('frontend/')
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Test Retags
-  #       uses: ./
-  #       with:
-  #         package: ${{ matrix.package }}
-  #         tag: ${{ github.event.number }}
-  #         tag_fallback: test
-  #         repository: bcgov/nr-quickstart-typescript
-  #         token: ${{ secrets.GITHUB_TOKEN }}
-
-  # builds:
-  #   permissions:
-  #     packages: write
-  #   runs-on: ubuntu-22.04
-  #   strategy:
-  #     matrix:
-  #       package: [backend, database, frontend]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Test Builds
-  #       uses: ./
-  #       with:
-  #         package: ${{ matrix.package }}
-  #         build_context: ${{ matrix.build_file }}
-  #         build_file: ${{ matrix.build_file }}
-  #         tag: ${{ github.event.number }}
-  #         repository: bcgov/nr-quickstart-typescript
-  #         token: ${{ secrets.GITHUB_TOKEN }}
-
-  fom:
+  # Anything can be retagged if a fallback image exists (e.g. test)
+  retag:
     permissions:
       packages: write
+    name: Retag
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        package: [fom-admin, fom-api, db, fom-public]
-        include:
-          - package: fom-admin
-            build_context: .
-            build_file: admin/Dockerfile
-            triggers: ('admin/')
-          - package: fom-api
-            build_context: .
-            build_file: api/Dockerfile
-            triggers: ('api/')
-          - package: db
-            triggers: ('db/')
-          - package: fom-public
-            build_context: .
-            build_file: public/Dockerfile
-            triggers: ('public/')
     steps:
       - uses: actions/checkout@v3
-      - name: Test Builds
-        uses: ./
+      - uses: ./
         with:
-          package: ${{ matrix.package }}
-          build_context: ${{ matrix.build_context }}
-          build_file: ${{ matrix.build_file }}
+          package: backend
+          repository: bcgov/nr-quickstart-typescript
+          tag: ${{ github.event.number }}
+          tag_fallback: test
+          token: ${{ secrets.GITHUB_TOKEN }}
+          triggers: ('backend/')
+
+  # QuickStart apps build from the same dirs as their Dockerfiles
+  basic:
+    permissions:
+      packages: write
+    name: Basic
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          package: frontend
+          repository: bcgov/nr-quickstart-typescript
+          tag: ${{ github.event.number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # FOM apps build from repo root, one above their Dockerfiles
+  advanced:
+    permissions:
+      packages: write
+    name: Advanced
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          package: api
+          build_context: .
+          build_file: api/Dockerfile
           repository: bcgov/nr-fom
           tag: ${{ github.event.number }}
           token: ${{ secrets.GITHUB_TOKEN }}
