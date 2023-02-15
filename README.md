@@ -130,6 +130,41 @@ jobs:
           triggers: ('frontend/')
 ```
 
+# Example, Single Build with build_context and build_file
+
+Build an image overriding the build context and the build file, which is the Dockerfile.
+
+Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/pr-open.yml`
+
+```yaml
+name: Pull Request
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  builds:
+    permissions:
+      packages: write
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Builds
+        uses: bcgov-nr/action-conditional-container-builder@v1.0.0
+        with:
+          package: frontend
+          build_context: ./
+          build_file: subdir/Dockerfile
+          tag: ${{ github.event.number }}
+          tag_fallback: test
+          token: ${{ secrets.GITHUB_TOKEN }}
+          triggers: ('frontend/')
+```
+
 # Example, Matrix Build
 
 Build from multiple subfolders with Dockerfile in them.  This time an outside repository is used.  Runs on pull requests (PRs).
