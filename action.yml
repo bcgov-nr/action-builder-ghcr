@@ -79,7 +79,7 @@ runs:
         # Check for builds
 
         # Build if no tag_fallback, no triggers or using an override repository
-        if [ ! -z "${{ inputs.repository }}" ]||[ -z "${{ inputs.tag_fallback }}" ]||[ -z "${{ inputs.triggers }}" ]; then
+        if [ -z "${{ inputs.tag_fallback }}" ]||[ -z "${{ inputs.triggers }}" ]; then
           echo "Build triggered based on inputs.  Possible reasons:"
           echo " a) repository override provided"
           echo " b) tag_fallback or triggers not provided"
