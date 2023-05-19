@@ -78,11 +78,18 @@ runs:
       run: |
         # Check for builds
 
-        # Build if no tag_fallback, no triggers or using an override repository
-        if [ ! -z "${{ inputs.repository }}" ]||[ -z "${{ inputs.tag_fallback }}" ]||[ -z "${{ inputs.triggers }}" ]; then
-          echo "Build triggered based on inputs.  Possible reasons:"
-          echo " a) repository override provided"
-          echo " b) tag_fallback or triggers not provided"
+        # Build if an override repository was provided
+        if [ "${{ inputs.repository }}" != ${{ github.repositor }}" ]; then
+          echo "Build triggered on override repository"
+          echo "triggered=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Build if no tag_fallback or no triggers
+        if [ -z "${{ inputs.tag_fallback }}" ]||[ -z "${{ inputs.triggers }}" ]; then
+          echo "Build triggered with possible reasons:"
+          echo "  a) tag_fallback provided"
+          echo "  b) triggers not provided"
           echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
         fi
