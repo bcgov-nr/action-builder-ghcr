@@ -79,7 +79,7 @@ runs:
         # Check for builds
 
         # Build if an override repository was provided
-        if [ "${{ inputs.repository }}" != ${{ github.repositor }}" ]; then
+        if [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
           echo "Build triggered on override repository"
           echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
