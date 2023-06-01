@@ -92,10 +92,9 @@ runs:
           echo "  b) triggers not provided"
           echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
-        fi
 
         # Build if tag_fallback is no good (requires a valid container)
-        if [ $(docker buildx imagetools inspect ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }} > /dev/null) -ne 0 ]
+        elif [ $(docker buildx imagetools inspect ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }} > /dev/null) -ne 0 ]
         then
             # Output triggered=true for next steps
             echo "Build triggered.  Fallback tag (tag_fallback) not usable."
