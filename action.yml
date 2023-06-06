@@ -92,18 +92,16 @@ runs:
           echo "  b) triggers not provided"
           echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
+        fi
 
-        else
-          # Build if tag_fallback is no good (requires a valid container)
-          docker buildx imagetools inspect ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }} > /dev/null 2>&1
-          if [ $? -ne 0 ]
-          then
-              # Output triggered=true for next steps
-              echo "Build triggered.  Fallback tag (tag_fallback) not usable."
-              echo "Manifest checked for: ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}"
-              echo "triggered=true" >> $GITHUB_OUTPUT
-              exit 0
-          fi
+        # Build if tag_fallback is no good (requires a valid container)
+        docker buildx imagetools inspect ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }} 2>&1
+        if [ $? -ne 0 ]; then
+          # Output triggered=true for next steps
+          echo "Build triggered.  Fallback tag (tag_fallback) not usable."
+          echo "Manifest checked for: ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}"
+          echo "triggered=true" >> $GITHUB_OUTPUT
+          exit 0
         fi
 
         # Build if changed files (git diff) match triggers
