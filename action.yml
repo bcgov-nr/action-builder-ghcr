@@ -25,6 +25,8 @@ inputs:
     description: Build context, not required for self-contained package/default directory
   build_file:
     description: Dockerfile with path, not required for self-contained package/default directory
+  build_args:
+    description: A list of build-time variables, not required
 
   ### Usually a bad idea / not recommended
   diff_branch:
@@ -65,6 +67,13 @@ runs:
           echo "build_file=${{ inputs.package }}/Dockerfile" >> $GITHUB_OUTPUT
         else
           echo "build_file=${{ inputs.build_file }}" >> $GITHUB_OUTPUT
+        fi
+
+        # Use inputs.build_args unless an override has been provided
+        if [ -z ${{ inputs.build_args }} ]; then
+          echo "build_arguments=BUILDKIT_INLINE_CACHE=1" >> $GITHUB_OUTPUT
+        else
+          echo "build_arguments=${{ inputs.build_args }}" >> $GITHUB_OUTPUT
         fi
 
         # Bug - Docker build hates images with capital letters
@@ -156,6 +165,7 @@ runs:
         tags: ${{ steps.vars.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        build-args: ${{ steps.vars.outputs.build_arguments }}
 
     - name: Checkout Action repo to pass tests
       uses: actions/checkout@v3
