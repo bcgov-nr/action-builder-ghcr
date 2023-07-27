@@ -50,6 +50,11 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
     # Optional, defaults to package name
     build_context: ./frontend
 
+    # Sets a list of [build-time variables](https://docs.docker.com/engine/reference/commandline/buildx_build/#build-arg)
+    # Optional, defaults to sample content
+    build_args: |
+      ENV=build
+
 
     ### Usually a bad idea / not recommended
 
