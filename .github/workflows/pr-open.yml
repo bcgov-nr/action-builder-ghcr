@@ -19,7 +19,6 @@ jobs:
       - uses: ./
         with:
           package: backend
-          repository: bcgov/nr-quickstart-typescript
           tag: ${{ github.event.number }}
           tag_fallback: test
           token: ${{ secrets.GITHUB_TOKEN }}

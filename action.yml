@@ -25,6 +25,8 @@ inputs:
     description: Build context, not required for self-contained package/default directory
   build_file:
     description: Dockerfile with path, not required for self-contained package/default directory
+  build_args:
+    description: A list of build-time variables, not required
 
   ### Usually a bad idea / not recommended
   diff_branch:
@@ -67,6 +69,13 @@ runs:
           echo "build_file=${{ inputs.build_file }}" >> $GITHUB_OUTPUT
         fi
 
+        # Use inputs.build_args unless an override has been provided
+        if [ -z ${{ inputs.build_args }} ]; then
+          echo "build_arguments=BUILDKIT_INLINE_CACHE=1" >> $GITHUB_OUTPUT
+        else
+          echo "build_arguments=${{ inputs.build_args }}" >> $GITHUB_OUTPUT
+        fi
+
         # Bug - Docker build hates images with capital letters
         TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
         echo "tags=${TAGS}" >> $GITHUB_OUTPUT
@@ -78,24 +87,30 @@ runs:
       run: |
         # Check for builds
 
-        # Build if no tag_fallback, no triggers or using an override repository
-        if [ ! -z "${{ inputs.repository }}" ]||[ -z "${{ inputs.tag_fallback }}" ]||[ -z "${{ inputs.triggers }}" ]; then
-          echo "Build triggered based on inputs.  Possible reasons:"
-          echo " a) repository override provided"
-          echo " b) tag_fallback or triggers not provided"
+        # Build if an override repository was provided
+        if [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
+          echo "Build triggered on override repository"
+          echo "triggered=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Build if no tag_fallback or no triggers
+        if [ -z "${{ inputs.tag_fallback }}" ]||[ -z "${{ inputs.triggers }}" ]; then
+          echo "Build triggered with possible reasons:"
+          echo "  a) tag_fallback provided"
+          echo "  b) triggers not provided"
           echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
         fi
 
         # Build if tag_fallback is no good (requires a valid container)
-        TOKEN=$(curl -s https://ghcr.io/token\?scope\="repository:${{ inputs.repository }}/${{ inputs.package }}:pull" | jq -r .token)
-        URL="https://ghcr.io/v2/${{ inputs.repository }}/${{ inputs.package }}/manifests/${{ inputs.tag_fallback }}"
-        if [ $(curl -ILso /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" "${URL}") -ne 200 ]
-        then
-            # Output triggered=true for next steps
-            echo "Build triggered.  Fallback tag (tag_fallback) not usable."
-            echo "triggered=true" >> $GITHUB_OUTPUT
-            exit 0
+        FALLBACK=ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
+        if [ "$(docker buildx imagetools inspect ${FALLBACK} || true | grep -qi '^Name:')" = "" ]; then
+          # Output triggered=true for next steps
+          echo "Build triggered.  Fallback tag (tag_fallback) not usable."
+          echo "Manifest checked for: ghcr.io/${FALLBACK}"
+          echo "triggered=true" >> $GITHUB_OUTPUT
+          exit 0
         fi
 
         # Build if changed files (git diff) match triggers
@@ -150,6 +165,7 @@ runs:
         tags: ${{ steps.vars.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        build-args: ${{ steps.vars.outputs.build_arguments }}
 
     - name: Checkout Action repo to pass tests
       uses: actions/checkout@v3
