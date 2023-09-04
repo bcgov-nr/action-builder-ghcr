@@ -44,7 +44,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         # Check out build repo
         repository: ${{ inputs.repository }}
@@ -168,4 +168,4 @@ runs:
         build-args: ${{ steps.vars.outputs.build_arguments }}
 
     - name: Checkout Action repo to pass tests
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
