@@ -166,6 +166,7 @@ runs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: ${{ steps.vars.outputs.build_arguments }}
+        provenance: false
 
     - name: Checkout Action repo to pass tests
       uses: actions/checkout@v4
