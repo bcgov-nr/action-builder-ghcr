@@ -145,7 +145,7 @@ runs:
     # If a build is required, then build and push!
     - name: Set up Docker Buildx
       if: steps.build.outputs.triggered == 'true'
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
 
     - name: Log in to the Container registry
       if: steps.build.outputs.triggered == 'true'
