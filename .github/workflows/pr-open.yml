@@ -21,7 +21,6 @@ jobs:
           package: backend
           tag: ${{ github.event.number }}
           tag_fallback: test
-          token: ${{ secrets.GITHUB_TOKEN }}
           triggers: ('backend/')
 
   # QuickStart apps build from the same dirs as their Dockerfiles
@@ -37,7 +36,6 @@ jobs:
           package: frontend
           repository: bcgov/nr-quickstart-typescript
           tag: ${{ github.event.number }}
-          token: ${{ secrets.GITHUB_TOKEN }}
 
   # FOM apps build from repo root, one above their Dockerfiles
   advanced:
@@ -54,4 +52,3 @@ jobs:
           build_file: api/Dockerfile
           repository: bcgov/nr-fom
           tag: ${{ github.event.number }}
-          token: ${{ secrets.GITHUB_TOKEN }}

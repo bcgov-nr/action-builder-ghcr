@@ -12,9 +12,6 @@ inputs:
   tag:
     description: Default tag; e.g. pr#, test, prod
     required: true
-  token:
-    description: Default github token or personal access token
-    required: true
 
   ### Typical / recommended
   tag_fallback:
@@ -35,6 +32,9 @@ inputs:
   repository:
     default: ${{ github.repository }}
     description: Non-default repo to clone
+  token:
+    description: Specify token (GH or PAT), instead of inheriting one from the calling workflow
+    default: ${{ github.token }}
 
 outputs:
   build:
