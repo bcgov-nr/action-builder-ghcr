@@ -31,9 +31,6 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
     # Tag name (<package>:<tag>)
     tag: ${{ github.event.number }}
 
-    # Usually ${{ secrets.GITHUB_TOKEN }}, but a personal access token works too
-    token: ${{ secrets.GITHUB_TOKEN }}
-
 
     ### Typical / recommended
 
@@ -66,6 +63,10 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
     # Useful for consuming other repos, like in testing
     # Defaults to the current one
     repository: ${{ github.repository }}
+
+    # Specify token (GH or PAT), instead of inheriting one from the calling workflow
+    token: ${{ secrets.GITHUB_TOKEN }}
+
 ```
 
 # Example, Single Build
