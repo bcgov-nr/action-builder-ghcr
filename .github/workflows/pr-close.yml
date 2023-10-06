@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        package: [test-basic, test-advanced]
+        package: [api, backend]
     steps:
       - uses: shrink/actions-docker-registry-tag@v3
         with:
