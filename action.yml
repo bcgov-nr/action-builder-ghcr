@@ -175,7 +175,6 @@ runs:
 
     - name: GHCR Cleanup
       if: ${{ inputs.keep_versions }}
-      timeout-minutes: 1
       uses: actions/delete-package-versions@v4
       with:
         package-name: "${{ github.event.repository.name }}/${{ inputs.package }}"
