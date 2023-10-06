@@ -43,21 +43,33 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
     # Optional, defaults to nothing, which forces a build
     triggers: ('frontend/')
 
-    # Sets the build context/directory, which containt, but not points to a Docker
+    # Sets the build context/directory, which contains the build files
     # Optional, defaults to package name
     build_context: ./frontend
+
+    # Sets the Dockerfile with path
+    # Optional, defaults to the package name's folder
+    build_file: ./frontend/Dockerfile
+
+    # Number of packages to keep if cleaning up previous builds
+    # Optional, skips if not provided
+    keep_versions: 50
+
+
+    ### Usually a bad idea / not recommended
 
     # Sets a list of [build-time variables](https://docs.docker.com/engine/reference/commandline/buildx_build/#build-arg)
     # Optional, defaults to sample content
     build_args: |
       ENV=build
 
-
-    ### Usually a bad idea / not recommended
-
     # Overrides the default branch to diff against
     # Defaults to the default branch, usually `main`
     diff_branch: ${{ github.event.repository.default_branch }}
+
+    # Regex for tags to skip when cleaning up packages; defaults to test and prod
+    # Only used when keep_versions is provided
+    keep_regex: "^(prod|test)$"
 
     # Repository to clone and process
     # Useful for consuming other repos, like in testing
@@ -71,7 +83,7 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
 
 # Example, Single Build
 
-Build a single subfolder with a Dockerfile in it.  Runs on pull requests (PRs).
+Build a single subfolder with a Dockerfile in it.  Deletes old packages, keeping the last 50.  Runs on pull requests (PRs).
 
 Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/pr-open.yml`
 
@@ -96,40 +108,7 @@ jobs:
         uses: bcgov-nr/action-conditional-container-builder@v1.0.0
         with:
           package: frontend
-          tag: ${{ github.event.number }}
-          tag_fallback: test
-          token: ${{ secrets.GITHUB_TOKEN }}
-          triggers: ('frontend/')
-```
-
-# Example, Single Build with build_context
-
-Build an image overriding the build context, which is a directory containing a Dockerfile.
-
-Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/pr-open.yml`
-
-```yaml
-name: Pull Request
-
-on:
-  pull_request:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-jobs:
-  builds:
-    permissions:
-      packages: write
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - name: Builds
-        uses: bcgov-nr/action-conditional-container-builder@v1.0.0
-        with:
-          package: frontend
-          build_context: ./
+          keep_versions: 50
           tag: ${{ github.event.number }}
           tag_fallback: test
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -138,7 +117,7 @@ jobs:
 
 # Example, Single Build with build_context and build_file
 
-Build an image overriding the build context and the build file, which is the Dockerfile.
+Same as previous, but specifying build folder and Dockerfile.
 
 Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/pr-open.yml`
 
@@ -165,6 +144,7 @@ jobs:
           package: frontend
           build_context: ./
           build_file: subdir/Dockerfile
+          keep_versions: 50
           tag: ${{ github.event.number }}
           tag_fallback: test
           token: ${{ secrets.GITHUB_TOKEN }}
