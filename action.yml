@@ -165,7 +165,6 @@ runs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: ${{ inputs.build_args }}
-        provenance: false
 
     - name: GHCR Cleanup
       if: ${{ inputs.keep_versions }}
