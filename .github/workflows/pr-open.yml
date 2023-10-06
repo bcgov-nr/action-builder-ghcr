@@ -18,11 +18,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./
         with:
-          package: frontend
+          package: backend
           keep_versions: 10
           tag: ${{ github.event.number }}-retag
           tag_fallback: test
-          triggers: ('frontend/')
+          triggers: ('backend/')
 
   # QuickStart apps build from the same dirs as their Dockerfiles
   basic:
@@ -34,9 +34,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./
         with:
-          package: frontend
+          package: backend
           keep_versions: 10
-          repository: bcgov/nr-quickstart-typescript
+          repository: bcgov/openshift-quickstart
           tag: ${{ github.event.number }}
 
   # FOM apps build from repo root, one above their Dockerfiles
