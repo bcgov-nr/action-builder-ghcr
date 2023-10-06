@@ -28,6 +28,7 @@ inputs:
   ### Usually a bad idea / not recommended
   build_args:
     description: A list of build-time variables, generally not adviseable
+    value: "BUILDKIT_INLINE_CACHE=1"
   diff_branch:
     description: Branch to diff against
     default: ${{ github.event.repository.default_branch }}
@@ -72,13 +73,6 @@ runs:
           echo "build_file=${{ inputs.package }}/Dockerfile" >> $GITHUB_OUTPUT
         else
           echo "build_file=${{ inputs.build_file }}" >> $GITHUB_OUTPUT
-        fi
-
-        # Use inputs.build_args unless an override has been provided
-        if [ -z ${{ inputs.build_args }} ]; then
-          echo "build_arguments=BUILDKIT_INLINE_CACHE=1" >> $GITHUB_OUTPUT
-        else
-          echo "build_arguments=${{ inputs.build_args }}" >> $GITHUB_OUTPUT
         fi
 
         # Bug - Docker build hates images with capital letters
@@ -170,7 +164,7 @@ runs:
         tags: ${{ steps.vars.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-        build-args: ${{ steps.vars.outputs.build_arguments }}
+        build-args: ${{ input.build_args }}
         provenance: false
 
     - name: GHCR Cleanup
