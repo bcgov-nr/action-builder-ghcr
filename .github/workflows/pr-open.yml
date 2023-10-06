@@ -8,8 +8,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # QuickStart apps build from the same dirs as their Dockerfiles
+  build:
+    permissions:
+      packages: write
+    name: Basic
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          package: backend
+          keep_versions: 10
+          repository: bcgov/quickstart-openshift
+          tag: ${{ github.event.number }}
+
   # Anything can be retagged if a fallback image exists (e.g. test)
   retag:
+    needs: [build]
     permissions:
       packages: write
     name: Retag
@@ -24,20 +40,6 @@ jobs:
           tag_fallback: test
           triggers: ('backend/')
 
-  # QuickStart apps build from the same dirs as their Dockerfiles
-  basic:
-    permissions:
-      packages: write
-    name: Basic
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./
-        with:
-          package: backend
-          keep_versions: 10
-          repository: bcgov/openshift-quickstart
-          tag: ${{ github.event.number }}
 
   # FOM apps build from repo root, one above their Dockerfiles
   advanced:
