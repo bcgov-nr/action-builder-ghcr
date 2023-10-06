@@ -63,17 +63,19 @@ runs:
 
         # Use package folder as build_context unless an override has been provided
         if [ -z ${{ inputs.build_context }} ]; then
-          echo "build_context=${{ inputs.package }}" >> $GITHUB_OUTPUT
+          BUILD_CONTEXT=${{ inputs.package }}
         else
-          echo "build_context=${{ inputs.build_context }}" >> $GITHUB_OUTPUT
+          BUILD_CONTEXT=${{ inputs.build_context }}
         fi
+        echo "build_context=${BUILD_CONTEXT}" >> $GITHUB_OUTPUT
 
-        # Use build_context/Dockerfile as build_file unless an override has been provided
+        # Use BUILD_CONTEXT/Dockerfile as build_file unless an override has been provided
         if [ -z ${{ inputs.build_file }} ]; then
-          echo "build_file=${build_context}/Dockerfile" >> $GITHUB_OUTPUT
+          BUILD_FILE=${BUILD_CONTEXT}/Dockerfile
         else
-          echo "build_file=${{ inputs.build_file }}" >> $GITHUB_OUTPUT
+          BUILD_FILE=${{ inputs.build_file }}
         fi
+        echo "build_file=${BUILD_FILE}" >> $GITHUB_OUTPUT
 
         # Bug - Docker build hates images with capital letters
         TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
