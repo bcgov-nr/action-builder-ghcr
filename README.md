@@ -48,7 +48,7 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
     build_context: ./frontend
 
     # Sets the Dockerfile with path
-    # Optional, defaults to the package name's folder
+    # Optional, defaults to {package}/Dockerfile or {build_context}/Dockerfile
     build_file: ./frontend/Dockerfile
 
     # Number of packages to keep if cleaning up previous builds

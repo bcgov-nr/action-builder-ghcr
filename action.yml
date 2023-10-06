@@ -28,6 +28,7 @@ inputs:
   ### Usually a bad idea / not recommended
   build_args:
     description: A list of build-time variables, generally not adviseable
+    value: "BUILDKIT_INLINE_CACHE=1"
   diff_branch:
     description: Branch to diff against
     default: ${{ github.event.repository.default_branch }}
@@ -62,24 +63,19 @@ runs:
 
         # Use package folder as build_context unless an override has been provided
         if [ -z ${{ inputs.build_context }} ]; then
-          echo "build_context=${{ inputs.package }}" >> $GITHUB_OUTPUT
+          BUILD_CONTEXT=${{ inputs.package }}
         else
-          echo "build_context=${{ inputs.build_context }}" >> $GITHUB_OUTPUT
+          BUILD_CONTEXT=${{ inputs.build_context }}
         fi
+        echo "build_context=${BUILD_CONTEXT}" >> $GITHUB_OUTPUT
 
-        # Use inputs.package/Dockerfile as build_file unless an override has been provided
+        # Use BUILD_CONTEXT/Dockerfile as build_file unless an override has been provided
         if [ -z ${{ inputs.build_file }} ]; then
-          echo "build_file=${{ inputs.package }}/Dockerfile" >> $GITHUB_OUTPUT
+          BUILD_FILE=${BUILD_CONTEXT}/Dockerfile
         else
-          echo "build_file=${{ inputs.build_file }}" >> $GITHUB_OUTPUT
+          BUILD_FILE=${{ inputs.build_file }}
         fi
-
-        # Use inputs.build_args unless an override has been provided
-        if [ -z ${{ inputs.build_args }} ]; then
-          echo "build_arguments=BUILDKIT_INLINE_CACHE=1" >> $GITHUB_OUTPUT
-        else
-          echo "build_arguments=${{ inputs.build_args }}" >> $GITHUB_OUTPUT
-        fi
+        echo "build_file=${BUILD_FILE}" >> $GITHUB_OUTPUT
 
         # Bug - Docker build hates images with capital letters
         TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
@@ -147,7 +143,7 @@ runs:
         target: ${{ inputs.tag_fallback }}
         tags: ${{ inputs.tag }}
 
-    # If a build is required, then build and push!
+    # If a build is required, then login, build and push!
     - name: Set up Docker Buildx
       if: steps.build.outputs.triggered == 'true'
       uses: docker/setup-buildx-action@v3
@@ -170,9 +166,9 @@ runs:
         tags: ${{ steps.vars.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-        build-args: ${{ steps.vars.outputs.build_arguments }}
-        provenance: false
+        build-args: ${{ inputs.build_args }}
 
+    # Cleanup if inputs.keep_versions provided
     - name: GHCR Cleanup
       if: ${{ inputs.keep_versions }}
       uses: actions/delete-package-versions@v4
@@ -182,5 +178,7 @@ runs:
         min-versions-to-keep: ${{ inputs.keep_versions }}
         ignore-versions: "${{ inputs.keep_regex }}"
 
-    - name: Checkout Action repo to pass tests
+    # Action repo needs to be present for cleanup/tests
+    - name: Checkout local repo to make sure action.yml is present
+      if: ${{ github.repository }} != ${{ inputs.repository }}
       uses: actions/checkout@v4
