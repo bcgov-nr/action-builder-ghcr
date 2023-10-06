@@ -180,7 +180,7 @@ runs:
         package-name: "${{ github.event.repository.name }}/${{ inputs.package }}"
         package-type: "container"
         min-versions-to-keep: ${{ inputs.keep_versions }}
-        ignore-versions: "{{ inputs.keep_regex }}"
+        ignore-versions: "${{ inputs.keep_regex }}"
 
     - name: Checkout Action repo to pass tests
       uses: actions/checkout@v4
