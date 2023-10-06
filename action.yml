@@ -22,16 +22,21 @@ inputs:
     description: Build context, not required for self-contained package/default directory
   build_file:
     description: Dockerfile with path, not required for self-contained package/default directory
-  build_args:
-    description: A list of build-time variables, not required
+  keep_versions:
+    description: Number of versions to keep; omit to skip
 
   ### Usually a bad idea / not recommended
+  build_args:
+    description: A list of build-time variables, generally not adviseable
   diff_branch:
-    default: ${{ github.event.repository.default_branch }}
     description: Branch to diff against
+    default: ${{ github.event.repository.default_branch }}
+  keep_regex:
+    description: Regex for tags to skip when keep_versions is provided; defaults to test and prod
+    default: "^(prod|test)$"
   repository:
-    default: ${{ github.repository }}
     description: Non-default repo to clone
+    default: ${{ github.repository }}
   token:
     description: Specify token (GH or PAT), instead of inheriting one from the calling workflow
     default: ${{ github.token }}
@@ -167,6 +172,16 @@ runs:
         cache-to: type=gha,mode=max
         build-args: ${{ steps.vars.outputs.build_arguments }}
         provenance: false
+
+    - name: GHCR Cleanup
+      if: ${{ inputs.keep_versions }}
+      timeout-minutes: 1
+      uses: actions/delete-package-versions@v4
+      with:
+        package-name: "${{ github.event.repository.name }}/${{ inputs.package }}"
+        package-type: "container"
+        min-versions-to-keep: ${{ inputs.keep_versions }}
+        ignore-versions: "{{ inputs.keep_regex }}"
 
     - name: Checkout Action repo to pass tests
       uses: actions/checkout@v4
