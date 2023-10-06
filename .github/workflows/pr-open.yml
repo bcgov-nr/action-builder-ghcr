@@ -12,7 +12,7 @@ jobs:
   build:
     permissions:
       packages: write
-    name: Basic
+    name: Build
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +36,7 @@ jobs:
         with:
           package: backend
           keep_versions: 10
+          repository: bcgov/quickstart-openshift
           tag: ${{ github.event.number }}-retag
           tag_fallback: test
           triggers: ('backend/')
