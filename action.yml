@@ -20,7 +20,6 @@ inputs:
     description: Paths used to trigger a build; e.g. ('./backend/', './frontend/)
   build_context:
     description: Build context, not required for self-contained package/default directory
-    value: ${{ inputs.package }}
   build_file:
     description: Dockerfile with path, not required for self-contained package/default directory
   keep_versions:
@@ -62,9 +61,16 @@ runs:
       run: |
         # Inputs and variables
 
-        # Use inputs.package/Dockerfile as build_file unless an override has been provided
+        # Use package folder as build_context unless an override has been provided
+        if [ -z ${{ inputs.build_context }} ]; then
+          echo "build_context=${{ inputs.package }}" >> $GITHUB_OUTPUT
+        else
+          echo "build_context=${{ inputs.build_context }}" >> $GITHUB_OUTPUT
+        fi
+
+        # Use BUILD_CONTEXT/Dockerfile as build_file unless an override has been provided
         if [ -z ${{ inputs.build_file }} ]; then
-          echo "build_file=${{ inputs.package }}/Dockerfile" >> $GITHUB_OUTPUT
+          echo "build_file=${BUILD_CONTEXT}/Dockerfile" >> $GITHUB_OUTPUT
         else
           echo "build_file=${{ inputs.build_file }}" >> $GITHUB_OUTPUT
         fi
