@@ -19,6 +19,7 @@ jobs:
       - uses: ./
         with:
           package: backend
+          keep_versions: 10
           tag: ${{ github.event.number }}
           tag_fallback: test
           triggers: ('backend/')
@@ -34,6 +35,7 @@ jobs:
       - uses: ./
         with:
           package: frontend
+          keep_versions: 10
           repository: bcgov/nr-quickstart-typescript
           tag: ${{ github.event.number }}
 
@@ -50,5 +52,6 @@ jobs:
           package: api
           build_context: .
           build_file: api/Dockerfile
+          keep_versions: 10
           repository: bcgov/nr-fom
           tag: ${{ github.event.number }}
