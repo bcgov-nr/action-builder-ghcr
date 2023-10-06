@@ -22,6 +22,7 @@ jobs:
           keep_versions: 10
           tag: ${{ github.event.number }}-retag
           tag_fallback: test
+          triggers: ('frontend/')
 
   # QuickStart apps build from the same dirs as their Dockerfiles
   basic:
