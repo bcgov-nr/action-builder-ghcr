@@ -43,9 +43,9 @@ inputs:
     default: ${{ github.token }}
 
 outputs:
-  build:
-    description: True if a build has been generated
-    value: ${{ steps.build.outputs.triggered }}
+  digest:
+    description: 'Digest of the built image. for ex: sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+    value: ${{ steps.get_digest.outputs.digest }}
 
 runs:
   using: composite
@@ -182,3 +182,10 @@ runs:
     - name: Checkout local repo to make sure action.yml is present
       if: ${{ github.repository }} != ${{ inputs.repository }}
       uses: actions/checkout@v4
+
+    - name: Return digest of the built image
+      id: get_digest
+      shell: bash
+      run: |
+        DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq '.manifests[0].digest')
+        echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
