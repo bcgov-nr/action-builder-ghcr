@@ -44,7 +44,7 @@ inputs:
 
 outputs:
   digest:
-    description: 'Digest of the built image. for ex: ghcr.io/${{ github.repository }}/${{ inputs.package }}@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+    description: 'Digest of the built image. for ex: sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
     value: ${{ steps.get_digest.outputs.digest }}
 
 runs:
