@@ -196,14 +196,17 @@ jobs:
 
 # Output
 
-If a build has been generated this action will output `true`.
+The build will return image digests as output.
 
 ```yaml
 - id: meaningful_id_name
-  uses: bcgov-nr/action-conditional-container-builder@v1.0.0
+  uses: bcgov-nr/action-conditional-container-builder@v2.0.0
   ...
 
-- if: steps.meaningful_id_name.outputs.build == 'true'
+- id: deploy_with_digest
+  name: Deploy with digest
+  with:
+    digest: ${{ steps.meaningful_id_name.outputs.digest }}
   ...
 ```
 
