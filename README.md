@@ -41,7 +41,7 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
 
     # Bash array to diff for build triggering
     # Optional, defaults to nothing, which forces a build
-    triggers: ('frontend/')
+    triggers: ('frontend/' 'backend/' 'database/')
 
     # Sets the build context/directory, which contains the build files
     # Optional, defaults to package name

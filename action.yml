@@ -17,7 +17,7 @@ inputs:
   tag_fallback:
     description: Where to pull default images from; e.g. prod, test
   triggers:
-    description: Paths used to trigger a build; e.g. ('./backend/', './frontend/)
+    description: Paths used to trigger a build; e.g. ('./backend/' './frontend/)
   build_context:
     description: Build context, not required for self-contained package/default directory
   build_file:
