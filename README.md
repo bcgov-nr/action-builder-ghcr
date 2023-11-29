@@ -21,7 +21,7 @@ Only GitHub Container Registry (ghcr.io) is supported so far.
 # Usage
 
 ```yaml
-- uses: bcgov-nr/action-conditional-container-builder@v1.0.0
+- uses: bcgov-nr/action-builder-ghcr@vX.Y.X
   with:
     ### Required
 
@@ -105,7 +105,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Builds
-        uses: bcgov-nr/action-conditional-container-builder@v1.0.0
+        uses: bcgov-nr/action-builder-ghcr@vX.Y.Z
         with:
           package: frontend
           keep_versions: 50
@@ -139,7 +139,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Builds
-        uses: bcgov-nr/action-conditional-container-builder@v1.0.0
+        uses: bcgov-nr/action-builder-ghcr@vX.Y.Z
         with:
           package: frontend
           build_context: ./
@@ -183,7 +183,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Test Builds
-        uses: bcgov-nr/action-conditional-container-builder@v1.0.0
+        uses: bcgov-nr/action-builder-ghcr@vX.Y.Z
         with:
           package: ${{ matrix.package }}
           tag: ${{ github.event.number }}
@@ -200,7 +200,7 @@ The build will return image digests as output.
 
 ```yaml
 - id: meaningful_id_name
-  uses: bcgov-nr/action-conditional-container-builder@v2.0.0
+  uses: bcgov-nr/action-builder-ghcr@vX.Y.Z
   ...
 
 - id: deploy_with_digest
