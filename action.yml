@@ -79,7 +79,7 @@ runs:
 
         # Bug - Docker build hates images with capital letters
         TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
-        echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+        echo "tags=${TAGS//[$'\r\n ']}" >> $GITHUB_OUTPUT
 
     # Check if a build is required (steps.build.outputs.triggered=true|false)
     - name: Check for builds
@@ -196,6 +196,6 @@ runs:
         echo "digest=${DIGEST}"
         echo "digest=${DIGEST}"
         echo "digest=${DIGEST}"
-        
+
         # DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq '.manifests[0].digest')
         echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
