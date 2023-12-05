@@ -187,15 +187,5 @@ runs:
       id: get_digest
       shell: bash
       run: |
-        JSON=$(docker manifest inspect ${{ steps.vars.outputs.tags }})
-        echo "json=${JSON}"
-        echo "json=${JSON}"
-        echo "json=${JSON}"
-
-        DIGEST=$(echo "${JSON}" | jq '.manifests[0].digest')
-        echo "digest=${DIGEST}"
-        echo "digest=${DIGEST}"
-        echo "digest=${DIGEST}"
-
-        # DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq '.manifests[0].digest')
+        DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq '.manifests[0].digest')
         echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
