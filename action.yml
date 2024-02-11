@@ -164,8 +164,8 @@ runs:
         file: ${{ steps.vars.outputs.build_file }}
         push: true
         tags: ${{ steps.vars.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=registry
+        cache-to: type=registry,mode=max
         build-args: ${{ inputs.build_args }}
 
     # Cleanup if inputs.keep_versions provided
