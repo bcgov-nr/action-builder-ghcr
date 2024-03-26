@@ -88,29 +88,31 @@ runs:
       run: |
         # Check for builds
 
+        # Start by assuming triggered=true
+        echo "triggered=true" >> $GITHUB_OUTPUT
+
         # Build if an override repository was provided
         if [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
           echo "Build triggered on override repository"
-          echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
         fi
 
-        # Build if no tag_fallback or no triggers
-        if [ -z "${{ inputs.tag_fallback }}" ]||[ -z "${{ inputs.triggers }}" ]; then
-          echo "Build triggered with possible reasons:"
-          echo "  a) tag_fallback provided"
-          echo "  b) triggers not provided"
-          echo "triggered=true" >> $GITHUB_OUTPUT
+        # Build if no triggers
+        if [ -z "${{ inputs.triggers }}" ]; then
+          echo "Build triggered.  No triggers provided."
           exit 0
         fi
 
-        # Build if tag_fallback is no good (requires a valid container)
+        # Build if no tag_fallback
+        if [ -z "${{ inputs.tag_fallback }}" ]; then
+          echo "Build triggered.  No tag_fallback provided."
+          exit 0
+        fi
+
+        # Build if tag_fallback is unusable (e.g. does not exist, manifest unknown)
         FALLBACK=ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
-        if [ "$(docker buildx imagetools inspect ${FALLBACK} || true | grep -qi '^Name:')" = "" ]; then
-          # Output triggered=true for next steps
+        if [[ ! $(docker manifest inspect ${FALLBACK}) ]]; then
           echo "Build triggered.  Fallback tag (tag_fallback) not usable."
-          echo "Manifest checked for: ghcr.io/${FALLBACK}"
-          echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
         fi
 
@@ -123,7 +125,6 @@ runs:
                 # Output triggered=true for next steps
                 echo "Build triggered based on git diff"
                 echo -e "${t}\n --> ${check}"
-                echo "triggered=true" >> $GITHUB_OUTPUT
                 exit 0
             fi
           done
