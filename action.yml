@@ -106,12 +106,12 @@ runs:
 
         # Build if tag_fallback is no good (requires a valid container)
         FALLBACK=ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
-        docker manifest inspect ${FALLBACK} || (
+        if [[ ! $(docker manifest inspect ${FALLBACK}) ]]; then
           echo "Build triggered.  Fallback tag (tag_fallback) not usable."
           echo "Manifest checked for: ghcr.io/${FALLBACK}"
           echo "triggered=true" >> $GITHUB_OUTPUT
           exit 0
-        )
+        fi
 
         # Build if changed files (git diff) match triggers
         TRIGGERS=${{ inputs.triggers }}
