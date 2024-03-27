@@ -50,11 +50,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
-      with:
-        # Check out build repo
-        repository: ${{ inputs.repository }}
-
     # Process variables and inputs
     - id: vars
       shell: bash
@@ -81,58 +76,34 @@ runs:
         TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
         echo "tags=${TAGS//[$'\r\n ']}" >> $GITHUB_OUTPUT
 
+    # Send triggers to diff action
+    - id: diff
+      uses: bcgov-nr/action-diff-triggers@v0.2.0
+      with:
+        triggers: ${{ inputs.triggers }}
+        diff_branch: ${{ inputs.diff_branch }}
+
     # Check if a build is required (steps.build.outputs.triggered=true|false)
     - name: Check for builds
-      shell: bash
+      env:
+        URL_FALLBACK: ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
       id: build
+      shell: bash
       run: |
         # Check for builds
-
-        # Start by assuming triggered=true
         echo "triggered=true" >> $GITHUB_OUTPUT
-
-        # Build if an override repository was provided
-        if [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
-          echo "Build triggered on override repository"
-          exit 0
-        fi
-
-        # Build if no triggers
-        if [ -z "${{ inputs.triggers }}" ]; then
-          echo "Build triggered.  No triggers provided."
-          exit 0
-        fi
-
-        # Build if no tag_fallback
-        if [ -z "${{ inputs.tag_fallback }}" ]; then
+        if [ "${{ steps.diff.outputs.triggered }}" == "true" ]; then
+          echo "Build triggered. Used bcgov-nr/action-diff-triggers."
+        elif [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
+          echo "Build triggered.  Override repository provided."
+        elif [ -z "${{ inputs.tag_fallback }}" ]; then
           echo "Build triggered.  No tag_fallback provided."
-          exit 0
-        fi
-
-        # Build if tag_fallback is unusable (e.g. does not exist, manifest unknown)
-        FALLBACK=ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
-        if [[ ! $(docker manifest inspect ${FALLBACK}) ]]; then
+        elif [[ ! $(docker manifest inspect ${URL_FALLBACK}) ]]; then
           echo "Build triggered.  Fallback tag (tag_fallback) not usable."
-          exit 0
+        else
+          echo "Container build not required"
+          echo "triggered=false" >> $GITHUB_OUTPUT
         fi
-
-        # Build if changed files (git diff) match triggers
-        TRIGGERS=${{ inputs.triggers }}
-        git fetch origin ${{ inputs.diff_branch }}
-        while read -r check; do
-          for t in "${TRIGGERS[@]}"; do
-            if [[ "${check}" =~ "${t}" ]]; then
-                # Output triggered=true for next steps
-                echo "Build triggered based on git diff"
-                echo -e "${t}\n --> ${check}"
-                exit 0
-            fi
-          done
-        done < <(git diff origin/${{ inputs.diff_branch }} --name-only)
-
-        # If at this point, no build is required
-        echo "Container build not required"
-        echo "triggered=false" >> $GITHUB_OUTPUT
 
     # If a build is not required, reuse a previous image
     - name: Recycle/retag Previous Images
@@ -144,7 +115,11 @@ runs:
         target: ${{ inputs.tag_fallback }}
         tags: ${{ inputs.tag }}
 
-    # If a build is required, then login, build and push!
+    # If a build is required, then checkout, login, build and push!
+    - uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.repository }}
+
     - name: Set up Docker Buildx
       if: steps.build.outputs.triggered == 'true'
       uses: docker/setup-buildx-action@v3
@@ -184,6 +159,7 @@ runs:
       if: ${{ github.repository }} != ${{ inputs.repository }}
       uses: actions/checkout@v4
 
+    # Get the digest of the built image
     - name: Return digest of the built image
       id: get_digest
       shell: bash
