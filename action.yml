@@ -50,11 +50,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
-      with:
-        # Check out build repo
-        repository: ${{ inputs.repository }}
-
     # Process variables and inputs
     - id: vars
       shell: bash
@@ -120,6 +115,11 @@ runs:
         tags: ${{ inputs.tag }}
 
     # If a build is required, then login, build and push!
+    - uses: actions/checkout@v4
+      with:
+        # Check out build repo
+        repository: ${{ inputs.repository }}
+
     - name: Set up Docker Buildx
       if: steps.build.outputs.triggered == 'true'
       uses: docker/setup-buildx-action@v3
