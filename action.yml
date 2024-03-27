@@ -81,58 +81,33 @@ runs:
         TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
         echo "tags=${TAGS//[$'\r\n ']}" >> $GITHUB_OUTPUT
 
+    # Sent triggers to diff action
+    - id: diff
+      uses: bcgov-nr/action-diff-triggers@v0.2.0
+      with:
+        triggers: ${{ inputs.triggers }}
+        diff_branch: ${{ inputs.diff_branch }}
+
     # Check if a build is required (steps.build.outputs.triggered=true|false)
     - name: Check for builds
       shell: bash
       id: build
       run: |
         # Check for builds
-
-        # Start by assuming triggered=true
         echo "triggered=true" >> $GITHUB_OUTPUT
-
-        # Build if an override repository was provided
-        if [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
-          echo "Build triggered on override repository"
-          exit 0
-        fi
-
-        # Build if no triggers
-        if [ -z "${{ inputs.triggers }}" ]; then
-          echo "Build triggered.  No triggers provided."
-          exit 0
-        fi
-
-        # Build if no tag_fallback
-        if [ -z "${{ inputs.tag_fallback }}" ]; then
-          echo "Build triggered.  No tag_fallback provided."
-          exit 0
-        fi
-
-        # Build if tag_fallback is unusable (e.g. does not exist, manifest unknown)
         FALLBACK=ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
-        if [[ ! $(docker manifest inspect ${FALLBACK}) ]]; then
+        if [ "${{ steps.diff.outputs.triggered }}" == "true" ]; then
+          echo "Build triggered based on bcgov-nr/action-diff-triggers"
+        elif [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
+          echo "Build triggered on override repository"
+        elif [ -z "${{ inputs.tag_fallback }}" ]; then
+          echo "Build triggered.  No tag_fallback provided."
+        elif [[ ! $(docker manifest inspect ${FALLBACK}) ]]; then
           echo "Build triggered.  Fallback tag (tag_fallback) not usable."
-          exit 0
+        else
+          echo "Container build not required"
+          echo "triggered=false" >> $GITHUB_OUTPUT
         fi
-
-        # Build if changed files (git diff) match triggers
-        TRIGGERS=${{ inputs.triggers }}
-        git fetch origin ${{ inputs.diff_branch }}
-        while read -r check; do
-          for t in "${TRIGGERS[@]}"; do
-            if [[ "${check}" =~ "${t}" ]]; then
-                # Output triggered=true for next steps
-                echo "Build triggered based on git diff"
-                echo -e "${t}\n --> ${check}"
-                exit 0
-            fi
-          done
-        done < <(git diff origin/${{ inputs.diff_branch }} --name-only)
-
-        # If at this point, no build is required
-        echo "Container build not required"
-        echo "triggered=false" >> $GITHUB_OUTPUT
 
     # If a build is not required, reuse a previous image
     - name: Recycle/retag Previous Images
