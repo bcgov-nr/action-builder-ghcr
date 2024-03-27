@@ -76,7 +76,7 @@ runs:
         TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
         echo "tags=${TAGS//[$'\r\n ']}" >> $GITHUB_OUTPUT
 
-    # Sent triggers to diff action
+    # Send triggers to diff action
     - id: diff
       uses: bcgov-nr/action-diff-triggers@v0.2.0
       with:
@@ -85,19 +85,20 @@ runs:
 
     # Check if a build is required (steps.build.outputs.triggered=true|false)
     - name: Check for builds
-      shell: bash
+      env:
+        URL_FALLBACK: ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
       id: build
+      shell: bash
       run: |
         # Check for builds
         echo "triggered=true" >> $GITHUB_OUTPUT
-        FALLBACK=ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
         if [ "${{ steps.diff.outputs.triggered }}" == "true" ]; then
-          echo "Build triggered based on bcgov-nr/action-diff-triggers"
+          echo "Build triggered. Used bcgov-nr/action-diff-triggers."
         elif [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
-          echo "Build triggered on override repository"
+          echo "Build triggered.  Override repository provided."
         elif [ -z "${{ inputs.tag_fallback }}" ]; then
           echo "Build triggered.  No tag_fallback provided."
-        elif [[ ! $(docker manifest inspect ${FALLBACK}) ]]; then
+        elif [[ ! $(docker manifest inspect ${URL_FALLBACK}) ]]; then
           echo "Build triggered.  Fallback tag (tag_fallback) not usable."
         else
           echo "Container build not required"
@@ -114,10 +115,9 @@ runs:
         target: ${{ inputs.tag_fallback }}
         tags: ${{ inputs.tag }}
 
-    # If a build is required, then login, build and push!
+    # If a build is required, then checkout, login, build and push!
     - uses: actions/checkout@v4
       with:
-        # Check out build repo
         repository: ${{ inputs.repository }}
 
     - name: Set up Docker Buildx
@@ -159,6 +159,7 @@ runs:
       if: ${{ github.repository }} != ${{ inputs.repository }}
       uses: actions/checkout@v4
 
+    # Get the digest of the built image
     - name: Return digest of the built image
       id: get_digest
       shell: bash
