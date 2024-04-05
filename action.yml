@@ -119,6 +119,7 @@ runs:
     - uses: actions/checkout@v4
       with:
         repository: ${{ inputs.repository }}
+        token: ${{ inputs.token }}
 
     - name: Set up Docker Buildx
       if: steps.build.outputs.triggered == 'true'
