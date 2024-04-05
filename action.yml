@@ -76,94 +76,94 @@ runs:
         TAGS=$( echo "ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" | tr '[:upper:]' '[:lower:]' )
         echo "tags=${TAGS//[$'\r\n ']}" >> $GITHUB_OUTPUT
 
-    # Send triggers to diff action
-    - id: diff
-      uses: bcgov-nr/action-diff-triggers@v0.2.0
-      with:
-        triggers: ${{ inputs.triggers }}
-        diff_branch: ${{ inputs.diff_branch }}
+    # # Send triggers to diff action
+    # - id: diff
+    #   uses: bcgov-nr/action-diff-triggers@v0.2.0
+    #   with:
+    #     triggers: ${{ inputs.triggers }}
+    #     diff_branch: ${{ inputs.diff_branch }}
 
-    # Check if a build is required (steps.build.outputs.triggered=true|false)
-    - name: Check for builds
-      env:
-        URL_FALLBACK: ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
-      id: build
-      shell: bash
-      run: |
-        # Check for builds
-        echo "triggered=true" >> $GITHUB_OUTPUT
-        if [ "${{ steps.diff.outputs.triggered }}" == "true" ]; then
-          echo "Build triggered. Used bcgov-nr/action-diff-triggers."
-        elif [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
-          echo "Build triggered.  Override repository provided."
-        elif [ -z "${{ inputs.tag_fallback }}" ]; then
-          echo "Build triggered.  No tag_fallback provided."
-        elif [[ ! $(docker manifest inspect ${URL_FALLBACK}) ]]; then
-          echo "Build triggered.  Fallback tag (tag_fallback) not usable."
-        else
-          echo "Container build not required"
-          echo "triggered=false" >> $GITHUB_OUTPUT
-        fi
+    # # Check if a build is required (steps.build.outputs.triggered=true|false)
+    # - name: Check for builds
+    #   env:
+    #     URL_FALLBACK: ghcr.io/${{ inputs.repository }}/${{ inputs.package }}:${{ inputs.tag_fallback }}
+    #   id: build
+    #   shell: bash
+    #   run: |
+    #     # Check for builds
+    #     echo "triggered=true" >> $GITHUB_OUTPUT
+    #     if [ "${{ steps.diff.outputs.triggered }}" == "true" ]; then
+    #       echo "Build triggered. Used bcgov-nr/action-diff-triggers."
+    #     elif [ "${{ inputs.repository }}" != "${{ github.repository }}" ]; then
+    #       echo "Build triggered.  Override repository provided."
+    #     elif [ -z "${{ inputs.tag_fallback }}" ]; then
+    #       echo "Build triggered.  No tag_fallback provided."
+    #     elif [[ ! $(docker manifest inspect ${URL_FALLBACK}) ]]; then
+    #       echo "Build triggered.  Fallback tag (tag_fallback) not usable."
+    #     else
+    #       echo "Container build not required"
+    #       echo "triggered=false" >> $GITHUB_OUTPUT
+    #     fi
 
-    # If a build is not required, reuse a previous image
-    - name: Recycle/retag Previous Images
-      uses: shrink/actions-docker-registry-tag@v4
-      if: steps.build.outputs.triggered != 'true'
-      with:
-        registry: ghcr.io
-        repository: ${{ inputs.repository }}/${{ inputs.package }}
-        target: ${{ inputs.tag_fallback }}
-        tags: ${{ inputs.tag }}
+    # # If a build is not required, reuse a previous image
+    # - name: Recycle/retag Previous Images
+    #   uses: shrink/actions-docker-registry-tag@v4
+    #   if: steps.build.outputs.triggered != 'true'
+    #   with:
+    #     registry: ghcr.io
+    #     repository: ${{ inputs.repository }}/${{ inputs.package }}
+    #     target: ${{ inputs.tag_fallback }}
+    #     tags: ${{ inputs.tag }}
 
-    # If a build is required, then checkout, login, build and push!
-    - uses: actions/checkout@v4
-      with:
-        repository: ${{ inputs.repository }}
-        token: ${{ inputs.token }}
+    # # If a build is required, then checkout, login, build and push!
+    # - uses: actions/checkout@v4
+    #   with:
+    #     repository: ${{ inputs.repository }}
+    #     token: ${{ inputs.token }}
 
-    - name: Set up Docker Buildx
-      if: steps.build.outputs.triggered == 'true'
-      uses: docker/setup-buildx-action@v3
+    # - name: Set up Docker Buildx
+    #   if: steps.build.outputs.triggered == 'true'
+    #   uses: docker/setup-buildx-action@v3
 
-    - name: Log in to the Container registry
-      if: steps.build.outputs.triggered == 'true'
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ inputs.token }}
+    # - name: Log in to the Container registry
+    #   if: steps.build.outputs.triggered == 'true'
+    #   uses: docker/login-action@v3
+    #   with:
+    #     registry: ghcr.io
+    #     username: ${{ github.actor }}
+    #     password: ${{ inputs.token }}
 
-    - name: Build and push ${{ inputs.package }} Docker image
-      if: steps.build.outputs.triggered == 'true'
-      uses: docker/build-push-action@v5
-      with:
-        context: ${{ steps.vars.outputs.build_context }}
-        file: ${{ steps.vars.outputs.build_file }}
-        push: true
-        tags: ${{ steps.vars.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        build-args: ${{ inputs.build_args }}
+    # - name: Build and push ${{ inputs.package }} Docker image
+    #   if: steps.build.outputs.triggered == 'true'
+    #   uses: docker/build-push-action@v5
+    #   with:
+    #     context: ${{ steps.vars.outputs.build_context }}
+    #     file: ${{ steps.vars.outputs.build_file }}
+    #     push: true
+    #     tags: ${{ steps.vars.outputs.tags }}
+    #     cache-from: type=gha
+    #     cache-to: type=gha,mode=max
+    #     build-args: ${{ inputs.build_args }}
 
-    # Cleanup if inputs.keep_versions provided
-    - name: GHCR Cleanup
-      if: ${{ inputs.keep_versions }}
-      uses: actions/delete-package-versions@v5.0.0
-      with:
-        package-name: "${{ github.event.repository.name }}/${{ inputs.package }}"
-        package-type: "container"
-        min-versions-to-keep: ${{ inputs.keep_versions }}
-        ignore-versions: "${{ inputs.keep_regex }}"
+    # # Cleanup if inputs.keep_versions provided
+    # - name: GHCR Cleanup
+    #   if: ${{ inputs.keep_versions }}
+    #   uses: actions/delete-package-versions@v5.0.0
+    #   with:
+    #     package-name: "${{ github.event.repository.name }}/${{ inputs.package }}"
+    #     package-type: "container"
+    #     min-versions-to-keep: ${{ inputs.keep_versions }}
+    #     ignore-versions: "${{ inputs.keep_regex }}"
 
-    # Action repo needs to be present for cleanup/tests
-    - name: Checkout local repo to make sure action.yml is present
-      if: ${{ github.repository }} != ${{ inputs.repository }}
-      uses: actions/checkout@v4
+    # # Action repo needs to be present for cleanup/tests
+    # - name: Checkout local repo to make sure action.yml is present
+    #   if: ${{ github.repository }} != ${{ inputs.repository }}
+    #   uses: actions/checkout@v4
 
-    # Get the digest of the built image
-    - name: Return digest of the built image
-      id: get_digest
-      shell: bash
-      run: |
-        DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq '.manifests[0].digest')
-        echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
+    # # Get the digest of the built image
+    # - name: Return digest of the built image
+    #   id: get_digest
+    #   shell: bash
+    #   run: |
+    #     DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq '.manifests[0].digest')
+    #     echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
