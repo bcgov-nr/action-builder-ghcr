@@ -134,7 +134,7 @@ runs:
 
     - name: Build and push ${{ inputs.package }} Docker image
       if: steps.build.outputs.triggered == 'true'
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ${{ steps.vars.outputs.build_context }}
         file: ${{ steps.vars.outputs.build_file }}
