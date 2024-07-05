@@ -47,6 +47,10 @@ outputs:
     description: 'Digest of the built image. for ex: sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
     value: ${{ steps.get_digest.outputs.digest }}
 
+  triggered:
+    description: Did a deployment trigger?  [true|false]
+    value: ${{ steps.diff.outputs.triggered }}
+
 runs:
   using: composite
   steps:
