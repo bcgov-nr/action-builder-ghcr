@@ -196,17 +196,29 @@ jobs:
 
 # Output
 
-The build will return image digests as output.
+Return an image digest as output.  This applies to builds or retagged images.
 
 ```yaml
 - id: meaningful_id_name
   uses: bcgov-nr/action-builder-ghcr@vX.Y.Z
   ...
 
-- id: deploy_with_digest
-  name: Deploy with digest
-  with:
-    digest: ${{ steps.meaningful_id_name.outputs.digest }}
+- name: Echo digest
+  run: |
+    echo "Image digest: ${{ steps.meaningful_id_name.outputs.digest }}"
+  ...
+```
+
+Has an image been built?  [true|false]
+
+```yaml
+- id: meaningful_id_name
+  uses: bcgov-nr/action-builder-ghcr@vX.Y.Z
+  ...
+
+- name: Echo build trigger
+  run: |
+    echo "Trigger result: ${{ steps.meaningful_id_name.outputs.triggered }}"
   ...
 ```
 
