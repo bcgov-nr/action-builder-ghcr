@@ -188,7 +188,9 @@ runs:
       if: steps.build.outputs.triggered == 'true' && steps.digest_new.outputs.digest == steps.digest_old.outputs.digest
       shell: bash
       run: |
-        echo "SHA collision! New: ${{ steps.digest_new.outputs.digest }}, Old: ${{ steps.digest_old.outputs.digest }}"
+        echo "SHA collision!"
+        echo "  New: ${{ steps.digest_new.outputs.digest }}"
+        echo "  Old: ${{ steps.digest_old.outputs.digest }}"
         exit 1
 
     # Summary/debugging
