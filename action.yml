@@ -196,8 +196,7 @@ runs:
       if: always()
       shell: bash
       run: |
-        echo "Inputs: ${{ inputs }}"
-        echo -e "\nOutputs:"
-        echo -e "\tdigest: ${{ steps.digest_new.outputs.digest }}"
-        echo -e "\tdigest_old: ${{ steps.digest_old.outputs.digest }}"
-        echo -e "\ttriggered: ${{ steps.diff.outputs.triggered }}"
+        echo "inputs: ${{ fromJSON(inputs) }}"
+        echo "digest_new: ${{ steps.digest_new.outputs.digest }}"
+        echo "digest_old: ${{ steps.digest_old.outputs.digest }}"
+        echo "triggered: ${{ steps.diff.outputs.triggered }}"
