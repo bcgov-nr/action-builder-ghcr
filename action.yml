@@ -188,8 +188,8 @@ runs:
       shell: bash
       run: |
         echo "inputs: ${{ fromJSON(inputs) }}"
-        echo "triggered: ${{ steps.diff.outputs.triggered }}"
 
       # run: |
       #   echo "digest_new: ${{ steps.digest_new.outputs.digest }}"
       #   echo "digest_old: ${{ steps.digest_old.outputs.digest }}"
+        # echo "triggered: ${{ steps.diff.outputs.triggered }}"
