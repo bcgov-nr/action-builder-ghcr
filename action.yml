@@ -190,3 +190,11 @@ runs:
       run: |
         echo "SHA collision! New: ${{ steps.digest_new.outputs.digest }}, Old: ${{ steps.digest_old.outputs.digest }}"
         exit 1
+
+    # Summary/debugging
+    - name: Summary
+      if: always()
+      shell: bash
+      run: |
+        echo "Inputs: ${{ inputs }}"
+        echo "Outputs: ${{ outputs }}"
