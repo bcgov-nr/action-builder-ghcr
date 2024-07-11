@@ -197,4 +197,7 @@ runs:
       shell: bash
       run: |
         echo "Inputs: ${{ inputs }}"
-        echo "Outputs: ${{ outputs }}"
+        echo -e "\nOutputs:"
+        echo -e "\tdigest: ${{ steps.digest_new.outputs.digest }}"
+        echo -e "\tdigest_old: ${{ steps.digest_old.outputs.digest }}"
+        echo -e "\ttriggered: ${{ steps.diff.outputs.triggered }}"
