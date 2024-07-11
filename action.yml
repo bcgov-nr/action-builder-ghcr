@@ -182,3 +182,11 @@ runs:
       run: |
         DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq '.manifests[0].digest')
         echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
+
+    # Bug - fail if old and new digests match (e.g. no new image was built)
+    - name: SHA Double-check
+      if: steps.build.outputs.triggered == 'true' && steps.digest_new.outputs.digest == steps.digest_old.outputs.digest
+      shell: bash
+      run: |
+        echo "SHA collision! New: ${{ steps.digest_new.outputs.digest }}, Old: ${{ steps.digest_old.outputs.digest }}"
+        exit 1
