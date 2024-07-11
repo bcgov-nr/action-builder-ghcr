@@ -187,7 +187,9 @@ runs:
     - name: Summary
       shell: bash
       run: |
-        echo "digest_new: ${{ steps.digest_new.outputs.digest }}"
-        echo "digest_old: ${{ steps.digest_old.outputs.digest }}"
-        echo "triggered: ${{ steps.diff.outputs.triggered }}"
-        # echo "inputs: ${{ fromJSON(inputs) }}"
+        echo "TEST!"
+      # run: |
+      #   echo "inputs: ${{ fromJSON(inputs) }}"
+      #   echo "digest_new: ${{ steps.digest_new.outputs.digest }}"
+      #   echo "digest_old: ${{ steps.digest_old.outputs.digest }}"
+      #   echo "triggered: ${{ steps.diff.outputs.triggered }}"
