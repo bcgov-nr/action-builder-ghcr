@@ -183,10 +183,9 @@ runs:
         DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq -r '.manifests[0].digest')
         echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
 
-    # Summary
-    - name: Summary
-      shell: bash
+    - shell: bash
       run: |
+        # Summary
         echo "digest_new: ${{ steps.digest_new.outputs.digest }}"
         echo "digest_old: ${{ steps.digest_old.outputs.digest }}"
         echo "triggered: ${{ steps.diff.outputs.triggered }}"
