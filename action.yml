@@ -27,7 +27,7 @@ inputs:
 
   ### Usually a bad idea / not recommended
   build_args:
-    description: A list of build-time variables, generally not adviseable
+    description: A list of build-time variables, generally not advisable
     value: "BUILDKIT_INLINE_CACHE=1"
   diff_branch:
     description: Branch to diff against
@@ -44,8 +44,12 @@ inputs:
 
 outputs:
   digest:
-    description: 'Digest of the built image. for ex: sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
-    value: ${{ steps.get_digest.outputs.digest }}
+    description: 'Digest of the built image; e.g. sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+    value: ${{ steps.digest_new.outputs.digest }}
+
+  digest_old:
+    description: 'Digest of the previous image, if one existed'
+    value: ${{ steps.digest_old.outputs.digest }}
 
   triggered:
     description: Did a deployment trigger?  [true|false]
@@ -54,6 +58,16 @@ outputs:
 runs:
   using: composite
   steps:
+    # Cleanup if inputs.keep_versions provided
+    - name: GHCR Cleanup
+      if: ${{ inputs.keep_versions }}
+      uses: actions/delete-package-versions@v5.0.0
+      with:
+        package-name: "${{ github.event.repository.name }}/${{ inputs.package }}"
+        package-type: "container"
+        min-versions-to-keep: ${{ inputs.keep_versions }}
+        ignore-versions: "${{ inputs.keep_regex }}"
+
     # Process variables and inputs
     - id: vars
       shell: bash
@@ -119,6 +133,14 @@ runs:
         target: ${{ inputs.tag_fallback }}
         tags: ${{ inputs.tag }}
 
+    # If a build is required and replaces a previous image, save its SHA
+    - name: Check for a previous SHA
+      id: digest_old
+      shell: bash
+      run: |
+        DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} || echo | jq '.manifests[0].digest')
+        echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
+
     # If a build is required, then checkout, login, build and push!
     - uses: actions/checkout@v4
       with:
@@ -148,16 +170,6 @@ runs:
         cache-to: type=gha,mode=max
         build-args: ${{ inputs.build_args }}
 
-    # Cleanup if inputs.keep_versions provided
-    - name: GHCR Cleanup
-      if: ${{ inputs.keep_versions }}
-      uses: actions/delete-package-versions@v5.0.0
-      with:
-        package-name: "${{ github.event.repository.name }}/${{ inputs.package }}"
-        package-type: "container"
-        min-versions-to-keep: ${{ inputs.keep_versions }}
-        ignore-versions: "${{ inputs.keep_regex }}"
-
     # Action repo needs to be present for cleanup/tests
     - name: Checkout local repo to make sure action.yml is present
       if: ${{ github.repository }} != ${{ inputs.repository }}
@@ -165,8 +177,16 @@ runs:
 
     # Get the digest of the built image
     - name: Return digest of the built image
-      id: get_digest
+      id: digest_new
       shell: bash
       run: |
         DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} | jq '.manifests[0].digest')
         echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
+
+    # Bug - fail if old and new digests match (e.g. no new image was built)
+    - name: SHA Double-check
+      if: steps.build.outputs.triggered == 'true' && steps.digest_new.outputs.digest == steps.digest_old.outputs.digest
+      shell: bash
+      run: |
+        echo "SHA collision! New: ${{ steps.digest_new.outputs.digest }}, Old: ${{ steps.digest_old.outputs.digest }}"
+        exit 1
