@@ -138,7 +138,7 @@ runs:
       id: digest_old
       shell: bash
       run: |
-        DIGEST=$(docker manifest inspect ${{ steps.vars.outputs.tags }} || echo | jq '.manifests[0].digest')
+        DIGEST=$((docker manifest inspect ${{ steps.vars.outputs.tags }} || echo )| jq '.manifests[0].digest')
         echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
 
     # If a build is required, then checkout, login, build and push!
@@ -191,3 +191,12 @@ runs:
         echo "SHA repeat!"
         echo "  New: ${{ steps.digest_new.outputs.digest }}"
         echo "  Old: ${{ steps.digest_old.outputs.digest }}"
+
+    # Summary/debugging
+    - name: Summary
+      shell: bash
+      run: |
+        echo "inputs: ${{ fromJSON(inputs) }}"
+        echo "digest_new: ${{ steps.digest_new.outputs.digest }}"
+        echo "digest_old: ${{ steps.digest_old.outputs.digest }}"
+        echo "triggered: ${{ steps.diff.outputs.triggered }}"
