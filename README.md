@@ -194,9 +194,9 @@ jobs:
 
 ```
 
-# Output
+# Outputs
 
-Return an image digest as output.  This applies to builds or retagged images.
+Returns digests for the new and previous images, if available.  This applies to build and retags.
 
 ```yaml
 - id: meaningful_id_name
@@ -205,7 +205,8 @@ Return an image digest as output.  This applies to builds or retagged images.
 
 - name: Echo digest
   run: |
-    echo "Image digest: ${{ steps.meaningful_id_name.outputs.digest }}"
+    echo "Digest, new: ${{ steps.meaningful_id_name.outputs.digest }}"
+    echo "Digest, old: ${{ steps.meaningful_id_name.outputs.digest_old }}"
   ...
 ```
 
