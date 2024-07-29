@@ -10,7 +10,7 @@ This action builds Docker/Podman containers conditionally using a set of directo
 
 This is useful in CI/CD pipelines where not every package/app needs to be rebuilt.
 
-This tool is currently strongly opinionated and generatess images with a rigid structure below.  This is intended to become more flexible in future.
+This tool is currently strongly opinionated and generates images with a rigid structure below.  This is intended to become more flexible in future.
 
 Package name: `<organization>/<repository>/<package>:<tag>`
 
