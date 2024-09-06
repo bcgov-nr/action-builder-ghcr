@@ -149,12 +149,14 @@ runs:
     # Add envars to Dockerfile
     - name: Add build args and envars
       if: steps.build.outputs.triggered == 'true'
+      env:
+        dockerfile: ${{ steps.vars.outputs.build_file }}
       shell: bash
       run: |
-        echo "BUILDER_IMAGE=ghcr.io/${{ github.repository }}/${{ github.package }}:${{ inputs.target }}" >> $DOCKERFILE 
-        echo "BUILDER_PACKAGE=${{ inputs.package }}" >> $DOCKERFILE
-        echo "BUILDER_REPO=${{ github.repository }}" >> $DOCKERFILE
-        echo "BUILDER_TAG=${{ inputs.target }}" >> $DOCKERFILE
+        echo "BUILDER_IMAGE=ghcr.io/${{ github.repository }}/${{ github.package }}:${{ inputs.tag }}" >> ${{ env.dockerfile }}
+        echo "BUILDER_PACKAGE=${{ inputs.package }}" >> ${{ env.dockerfile }}
+        echo "BUILDER_REPO=${{ github.repository }}" >> ${{ env.dockerfile }}
+        echo "BUILDER_TAG=${{ inputs.tag }}" >> ${{ env.dockerfile }}
 
     - name: Set up Docker Buildx
       if: steps.build.outputs.triggered == 'true'
