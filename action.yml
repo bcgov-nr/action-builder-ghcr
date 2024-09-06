@@ -146,6 +146,16 @@ runs:
       with:
         repository: ${{ inputs.repository }}
 
+    # Add envars to Dockerfile
+    - name: Add build args and envars
+      if: steps.build.outputs.triggered == 'true'
+      shell: bash
+      run: |
+        echo "BUILDER_IMAGE=ghcr.io/${{ github.repository }}/${{ github.package }}:${{ inputs.target }}" >> $DOCKERFILE 
+        echo "BUILDER_PACKAGE=${{ inputs.package }}" >> $DOCKERFILE
+        echo "BUILDER_REPO=${{ github.repository }}" >> $DOCKERFILE
+        echo "BUILDER_TAG=${{ inputs.target }}" >> $DOCKERFILE
+
     - name: Set up Docker Buildx
       if: steps.build.outputs.triggered == 'true'
       uses: docker/setup-buildx-action@v3
@@ -156,7 +166,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ inputs.token }}
+        password: ${{ inputs.token }} 
 
     - name: Build and push ${{ inputs.package }} Docker image
       if: steps.build.outputs.triggered == 'true'
