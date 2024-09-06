@@ -146,13 +146,13 @@ runs:
       with:
         repository: ${{ inputs.repository }}
 
-    # Add envars to Dockerfile
-    - name: Add build args and envars
+    - name: Add build envars to Dockerfile
       if: steps.build.outputs.triggered == 'true'
       env:
         dockerfile: ${{ steps.vars.outputs.build_file }}
       shell: bash
       run: |
+        # Add build envars to Dockerfile
         echo "ENV BUILDER_IMAGE=ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" >> ${{ env.dockerfile }}
         echo "ENV BUILDER_PACKAGE=${{ inputs.package }}" >> ${{ env.dockerfile }}
         echo "ENV BUILDER_REPO=${{ github.repository }}" >> ${{ env.dockerfile }}
