@@ -13,7 +13,7 @@ jobs:
     permissions:
       packages: write
     name: Build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./
@@ -29,7 +29,7 @@ jobs:
     permissions:
       packages: write
     name: Retag
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./
@@ -47,7 +47,7 @@ jobs:
     permissions:
       packages: write
     name: Advanced
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./
