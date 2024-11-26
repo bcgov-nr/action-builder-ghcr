@@ -61,6 +61,7 @@ runs:
     # Cleanup if inputs.keep_versions provided
     - name: GHCR Cleanup
       if: ${{ inputs.keep_versions }}
+      continue-on-error: true # Stop fail if no versions to delete
       uses: actions/delete-package-versions@v5.0.0
       with:
         package-name: "${{ github.event.repository.name }}/${{ inputs.package }}"
