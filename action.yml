@@ -153,7 +153,8 @@ runs:
         dockerfile: ${{ steps.vars.outputs.build_file }}
       shell: bash
       run: |
-        # Add build envars to Dockerfile
+        # Add build envars to Dockerfile (pad for missing line endings!)
+        echo "" >> ${{ env.dockerfile }}
         echo "ENV BUILDER_IMAGE=ghcr.io/${{ github.repository }}/${{ inputs.package }}:${{ inputs.tag }}" >> ${{ env.dockerfile }}
         echo "ENV BUILDER_PACKAGE=${{ inputs.package }}" >> ${{ env.dockerfile }}
         echo "ENV BUILDER_REPO=${{ github.repository }}" >> ${{ env.dockerfile }}
