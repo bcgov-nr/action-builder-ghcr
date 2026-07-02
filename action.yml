@@ -111,6 +111,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Migration Warning
+      shell: bash
+      run: |
+        echo "::warning::This Action has moved to bcgov/actions/builder-ghcr. Please update your workflow to use bcgov/actions/builder-ghcr instead."
+
     # Initialize variables.
     - id: vars
       shell: bash
