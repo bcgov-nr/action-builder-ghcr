@@ -1,4 +1,4 @@
-# Action: Builder GHCR (Moved)
+# Builder GHCR (Moved)
 
 > [!IMPORTANT]
 > **This Action has moved!**
@@ -7,5 +7,5 @@
 >
 > Please update your workflows to point to the new location:
 > ```yaml
-> - uses: bcgov/actions/builder-ghcr@v0.2.0
+> - uses: bcgov/actions/builder-ghcr@vX.Y.Z
 > ```
