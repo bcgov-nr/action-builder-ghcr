@@ -427,7 +427,7 @@ runs:
       continue-on-error: true
       id: attest
       if: steps.build.outputs.triggered == 'true' && steps.attest_check.outputs.can_attest == 'true'
-      uses: actions/attest-build-provenance@v4.1.1
+      uses: actions/attest-build-provenance@v4.2.2
       with:
         subject-name: ghcr.io/${{ steps.vars.outputs.image_path }}
         subject-digest: ${{ steps.build_and_push.outputs.digest }}
